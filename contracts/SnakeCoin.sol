@@ -19,8 +19,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 contract SnakeCoin is ERC721, Ownable, ReentrancyGuard {
     using Strings for uint256;
     
-    // Maximum supply: 10,000 (reduced for testing)
-    uint256 public constant MAX_SUPPLY = 10_000;
+    // Maximum supply: 1,000 (further reduced for testing)
+    uint256 public constant MAX_SUPPLY = 1_000;
     
     // Lottery price per NFT
     uint256 public lotteryPrice = 0.0001 ether;
@@ -87,6 +87,24 @@ contract SnakeCoin is ERC721, Ownable, ReentrancyGuard {
     }
     
     /**
+     * @dev Initialize pool in batches to avoid gas issues
+     */
+    function _initializePoolBatch(uint256 startIndex, uint256 batchSize) private {
+        uint256 endIndex = startIndex + batchSize;
+        if (endIndex > MAX_SUPPLY) {
+            endIndex = MAX_SUPPLY;
+        }
+        
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            _idPool[i] = i;
+        }
+        
+        if (endIndex == MAX_SUPPLY) {
+            _poolSize = MAX_SUPPLY;
+        }
+    }
+    
+    /**
      * @dev Play lottery to get a random NFT
      */
     function playLottery() public payable nonReentrant {
@@ -146,6 +164,23 @@ contract SnakeCoin is ERC721, Ownable, ReentrancyGuard {
     function refillPool() public onlyOwner {
         require(_poolSize == 0, "Pool is empty or not initialized");
         _initializePool();
+        emit PoolRefilled(_poolSize);
+    }
+    
+    /**
+     * @dev Refill the pool in batches (owner only)
+     * @param batchSize Size of each batch (recommended: 100-500)
+     */
+    function refillPoolBatch(uint256 batchSize) public onlyOwner {
+        require(_poolSize == 0, "Pool is empty or not initialized");
+        require(batchSize > 0 && batchSize <= 1000, "Invalid batch size");
+        
+        uint256 startIndex = 0;
+        while (startIndex < MAX_SUPPLY) {
+            _initializePoolBatch(startIndex, batchSize);
+            startIndex += batchSize;
+        }
+        
         emit PoolRefilled(_poolSize);
     }
     

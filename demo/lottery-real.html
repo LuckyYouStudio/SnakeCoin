@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 蛇币NFT真实抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .wallet-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .wallet-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .connect-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .connect-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .connect-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .wallet-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .lottery-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .lottery-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .lottery-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .lottery-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .lottery-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .nft-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .nft-card h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .nft-svg {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .nft-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .nft-info p {
+            margin-bottom: 8px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .contract-info {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .contract-info h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .contract-info p {
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        /* 标签页样式 */
+        .tabs-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-right: 10px;
+        }
+
+        .tab-btn:hover {
+            color: #007bff;
+            background: #f8f9fa;
+        }
+
+        .tab-btn.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .my-nft-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .nft-status {
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 蛇币NFT真实抽奖</h1>
+            <p>连接钱包，支付0.0001 ETH参与真实抽奖！</p>
+        </div>
+
+        <div class="wallet-section">
+            <h2>🔗 钱包连接</h2>
+            <button id="connectBtn" class="connect-btn" onclick="connectWallet()">
+                连接MetaMask钱包
+            </button>
+            <div id="walletInfo" class="wallet-info" style="display: none;">
+                <!-- 钱包信息将在这里显示 -->
+            </div>
+        </div>
+
+        <div class="lottery-section">
+            <h2>🎯 抽奖信息</h2>
+            
+            <div class="contract-info">
+                <h3>📋 合约信息</h3>
+                <p><strong>合约地址:</strong> <span id="contractAddress">未连接</span></p>
+                <p><strong>网络:</strong> <span id="networkInfo">未连接</span></p>
+            </div>
+
+            <div class="lottery-info">
+                <div class="info-card">
+                    <h3>抽奖价格</h3>
+                    <p id="lotteryPrice">0.0001 ETH</p>
+                </div>
+                <div class="info-card">
+                    <h3>池子大小</h3>
+                    <p id="poolSize">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>已铸造</h3>
+                    <p id="totalMinted">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>剩余数量</h3>
+                    <p id="remainingSupply">-</p>
+                </div>
+            </div>
+
+            <button id="lotteryBtn" class="lottery-btn" onclick="playLottery()" disabled>
+                请先连接钱包
+            </button>
+
+            <div id="statusDiv"></div>
+        </div>
+
+        <div class="tabs-section">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('latest')" id="latestTab">
+                    🎉 最新抽中的NFT
+                </button>
+                <button class="tab-btn" onclick="switchTab('my')" id="myTab">
+                    🖼️ 我的NFT
+                </button>
+            </div>
+            
+            <div class="tab-content active" id="latestTabContent">
+                <div class="nft-grid" id="nftGrid">
+                    <!-- 抽中的NFT将在这里显示 -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="myTabContent">
+                <div class="my-nft-controls">
+                    <button id="refreshNftBtn" class="connect-btn" onclick="loadUserNFTs()">
+                        🔄 刷新我的NFT
+                    </button>
+                    <div id="myNftStatus" class="nft-status"></div>
+                </div>
+                <div class="nft-grid" id="myNftGrid">
+                    <!-- 用户拥有的NFT将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 合约配置
+        const CONTRACT_ADDRESS = "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1";
+        const CONTRACT_ABI = [
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "lotteryPrice",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "getPoolSize",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "totalSupply",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "playLottery",
+                "outputs": [],
+                "payable": true,
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "tokenId", "type": "uint256"}],
+                "name": "generateSnakeSVG",
+                "outputs": [{"name": "", "type": "string"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "tokenId", "type": "uint256"}],
+                "name": "ownerOf",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "tokenId", "type": "uint256"}],
+                "name": "tokenURI",
+                "outputs": [{"name": "", "type": "string"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "getLotteryInfo",
+                "outputs": [
+                    {"name": "price", "type": "uint256"},
+                    {"name": "poolSize", "type": "uint256"},
+                    {"name": "totalMinted", "type": "uint256"},
+                    {"name": "remaining", "type": "uint256"}
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "name": "winner", "type": "address"},
+                    {"indexed": true, "name": "tokenId", "type": "uint256"},
+                    {"indexed": false, "name": "price", "type": "uint256"}
+                ],
+                "name": "LotteryWon",
+                "type": "event"
+            }
+        ];
+
+        let web3;
+        let contract;
+        let userAccount;
+        let userBalance;
+
+        // 颜色和路径配置
+        const colors = [
+            "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7",
+            "#DDA0DD", "#FFB347", "#87CEEB", "#98FB98", "#F0E68C"
+        ];
+
+        const snakePaths = [
+            "M10,10 Q20,5 30,10 T50,10",
+            "M10,10 C20,5 30,15 50,10",
+            "M10,10 L30,5 L50,10",
+            "M10,10 Q30,5 50,10",
+            "M10,10 Q25,5 40,10 Q55,15 70,10",
+            "M10,10 C15,5 25,15 35,10 C45,5 55,15 65,10",
+            "M10,10 L20,5 L30,10 L40,5 L50,10",
+            "M10,10 Q20,5 30,10 Q40,15 50,10",
+            "M10,10 C20,5 30,15 40,10 C50,5 60,15 70,10",
+            "M10,10 Q15,5 20,10 Q25,15 30,10 Q35,5 40,10 Q45,15 50,10"
+        ];
+
+        // 断开连接
+        function disconnectWallet() {
+            const connectBtn = document.getElementById('connectBtn');
+            const walletInfo = document.getElementById('walletInfo');
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            
+            // 重置状态
+            userAccount = null;
+            userBalance = null;
+            web3 = null;
+            contract = null;
+            
+            // 更新UI
+            walletInfo.style.display = 'none';
+            lotteryBtn.disabled = true;
+            lotteryBtn.innerHTML = '请先连接钱包';
+            
+            // 重置按钮
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = '连接MetaMask钱包';
+            connectBtn.style.background = '#007bff';
+            connectBtn.onclick = connectWallet;
+            
+            showStatus('🔌 钱包已断开连接', 'info');
+        }
+
+        // 连接钱包
+        async function connectWallet() {
+            const connectBtn = document.getElementById('connectBtn');
+            const walletInfo = document.getElementById('walletInfo');
+            
+            try {
+                connectBtn.disabled = true;
+                connectBtn.innerHTML = '<span class="spinner"></span> 连接中...';
+
+                // 检查MetaMask是否安装
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('请安装MetaMask钱包！');
+                }
+
+                // 等待MetaMask完全加载
+                if (!window.ethereum.isMetaMask) {
+                    throw new Error('MetaMask未正确加载，请刷新页面重试');
+                }
+
+                // 请求账户连接
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                userAccount = accounts[0];
+                
+                // 检查网络
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const networkName = getNetworkName(chainId);
+                
+                // 初始化Web3和合约
+                web3 = new Web3(window.ethereum);
+                contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                
+                // 获取用户余额
+                userBalance = await web3.eth.getBalance(userAccount);
+                
+                                 // 更新UI
+                 updateWalletInfo(userAccount, userBalance, networkName);
+                 updateLotteryInfo();
+                 enableLottery();
+                 
+                 // 更新按钮状态
+                 connectBtn.disabled = false;
+                 connectBtn.innerHTML = '断开连接';
+                 connectBtn.style.background = '#28a745';
+                 connectBtn.onclick = disconnectWallet;
+                 
+                 showStatus('✅ 钱包连接成功！', 'success');
+                 
+             } catch (error) {
+                 console.error('连接失败:', error);
+                 showStatus(`❌ 连接失败: ${error.message}`, 'error');
+                 connectBtn.disabled = false;
+                 connectBtn.innerHTML = '连接MetaMask钱包';
+                 connectBtn.style.background = '#007bff';
+             }
+        }
+
+        // 更新钱包信息
+        function updateWalletInfo(account, balance, network) {
+            const walletInfo = document.getElementById('walletInfo');
+            const contractAddress = document.getElementById('contractAddress');
+            const networkInfo = document.getElementById('networkInfo');
+            
+            walletInfo.style.display = 'block';
+            walletInfo.innerHTML = `
+                <p><strong>账户地址:</strong> ${account}</p>
+                <p><strong>账户余额:</strong> ${web3.utils.fromWei(balance, 'ether')} ETH</p>
+                <p><strong>网络:</strong> ${network}</p>
+            `;
+            
+            contractAddress.textContent = CONTRACT_ADDRESS;
+            networkInfo.textContent = network;
+        }
+
+        // 获取网络名称
+        function getNetworkName(chainId) {
+            const networks = {
+                '0x1': 'Ethereum Mainnet',
+                '0x3': 'Ropsten Testnet',
+                '0x4': 'Rinkeby Testnet',
+                '0x5': 'Goerli Testnet',
+                '0x2a': 'Kovan Testnet',
+                '0x7a69': 'Hardhat Local Network',
+                '0x539': 'Hardhat Local Network'
+            };
+            return networks[chainId] || `Chain ID: ${chainId}`;
+        }
+
+        // 启用抽奖
+        function enableLottery() {
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            lotteryBtn.disabled = false;
+            lotteryBtn.innerHTML = '🎲 开始抽奖 (0.0001 ETH)';
+        }
+
+        // 更新抽奖信息
+        async function updateLotteryInfo() {
+            if (!contract) return;
+            
+            try {
+                const lotteryInfo = await contract.methods.getLotteryInfo().call();
+                const price = web3.utils.fromWei(lotteryInfo.price, 'ether');
+                
+                document.getElementById('lotteryPrice').textContent = `${price} ETH`;
+                document.getElementById('poolSize').textContent = lotteryInfo.poolSize.toString();
+                document.getElementById('totalMinted').textContent = lotteryInfo.totalMinted.toString();
+                document.getElementById('remainingSupply').textContent = lotteryInfo.remaining.toString();
+                
+                // 不再自动加载用户NFT，只有点击"我的NFT"标签时才加载
+                
+            } catch (error) {
+                console.error('获取抽奖信息失败:', error);
+                showStatus('⚠️ 无法获取抽奖信息，请检查网络连接', 'info');
+            }
+        }
+
+        // 真实抽奖
+        async function playLottery() {
+            if (!contract || !userAccount) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            const originalText = lotteryBtn.innerHTML;
+            
+            try {
+                // 禁用按钮并显示加载状态
+                lotteryBtn.disabled = true;
+                lotteryBtn.innerHTML = '<span class="spinner"></span> 抽奖中...';
+                
+                // 获取抽奖价格
+                const price = await contract.methods.lotteryPrice().call();
+                
+                // 检查用户余额
+                if (web3.utils.toBN(userBalance).lt(web3.utils.toBN(price))) {
+                    throw new Error('余额不足，无法支付抽奖费用');
+                }
+                
+                // 执行抽奖交易
+                const result = await contract.methods.playLottery().send({
+                    from: userAccount,
+                    value: price,
+                    gas: 300000
+                });
+                
+                // 查找抽奖事件
+                const lotteryEvent = result.events.LotteryWon;
+                if (lotteryEvent) {
+                    const tokenId = lotteryEvent.returnValues.tokenId;
+                    const winner = lotteryEvent.returnValues.winner;
+                    const paidAmount = lotteryEvent.returnValues.price;
+                    
+                    showStatus(`🎉 抽奖成功！获得 SnakeCoin #${tokenId}`, 'success');
+                    
+                                         // 生成NFT卡片
+                     await generateNFTCard(tokenId);
+                     
+                     // 更新信息
+                     updateLotteryInfo();
+                     
+                     // 刷新用户的NFT列表
+                     await loadUserNFTs();
+                    
+                    // 更新用户余额
+                    userBalance = await web3.eth.getBalance(userAccount);
+                    updateWalletInfo(userAccount, userBalance, getNetworkName(await window.ethereum.request({ method: 'eth_chainId' })));
+                    
+                } else {
+                    throw new Error('抽奖事件未找到');
+                }
+                
+            } catch (error) {
+                console.error('抽奖失败:', error);
+                showStatus(`❌ 抽奖失败: ${error.message}`, 'error');
+            } finally {
+                // 恢复按钮状态
+                lotteryBtn.disabled = false;
+                lotteryBtn.innerHTML = originalText;
+            }
+        }
+
+        // 加载用户拥有的NFT
+        async function loadUserNFTs() {
+            if (!contract || !userAccount) return;
+            
+            try {
+                const myNftGrid = document.getElementById('myNftGrid');
+                
+                // 清空现有内容
+                myNftGrid.innerHTML = '';
+                
+                // 获取总供应量
+                const totalSupply = await contract.methods.totalSupply().call();
+                console.log('总供应量:', totalSupply.toString());
+                
+                if (totalSupply == 0) {
+                    updateMyNftStatus('📭 您还没有任何NFT');
+                    return;
+                }
+                
+                updateMyNftStatus('🔍 正在查找您的NFT...');
+                console.log('开始查找用户NFT，用户地址:', userAccount);
+                
+                // 遍历所有可能的tokenId，检查用户是否拥有
+                let userNFTCount = 0;
+                const maxSupply = 1000; // 合约中的MAX_SUPPLY
+                const userNFTs = []; // 存储找到的NFT信息
+                
+                // 分批处理，避免一次性处理太多请求
+                const batchSize = 50;
+                let processedCount = 0;
+                
+                for (let tokenId = 0; tokenId < maxSupply; tokenId++) {
+                    try {
+                        // 检查token是否存在
+                        const owner = await contract.methods.ownerOf(tokenId).call();
+                        console.log(`Token ${tokenId} 的所有者:`, owner);
+                        
+                        if (owner.toLowerCase() === userAccount.toLowerCase()) {
+                            // 用户拥有这个NFT，先收集信息，不立即生成卡片
+                            console.log(`找到用户拥有的NFT: Token ${tokenId}`);
+                            userNFTs.push(tokenId);
+                            userNFTCount++;
+                        }
+                        
+                        processedCount++;
+                        
+                        // 每处理一批，更新状态
+                        if (processedCount % batchSize === 0) {
+                            updateMyNftStatus(`🔍 已检查 ${processedCount}/${maxSupply} 个Token...`);
+                        }
+                        
+                    } catch (error) {
+                        // token不存在，继续下一个
+                        console.log(`Token ${tokenId} 不存在或出错:`, error.message);
+                        processedCount++;
+                        continue;
+                    }
+                }
+                
+                console.log('查找完成，用户拥有NFT数量:', userNFTCount);
+                console.log('找到的NFT Token IDs:', userNFTs);
+                
+                if (userNFTCount > 0) {
+                    updateMyNftStatus(`✅ 找到 ${userNFTCount} 个NFT`);
+                    
+                    // 按倒序排列，最新的排在前面
+                    userNFTs.sort((a, b) => b - a);
+                    console.log('倒序排列后的NFT Token IDs:', userNFTs);
+                    
+                    // 按倒序生成NFT卡片
+                    for (const tokenId of userNFTs) {
+                        await generateUserNFTCard(tokenId);
+                    }
+                    
+                } else {
+                    updateMyNftStatus('📭 您还没有任何NFT');
+                }
+                
+            } catch (error) {
+                console.error('加载用户NFT失败:', error);
+                showStatus('⚠️ 加载用户NFT失败: ' + error.message, 'error');
+            }
+        }
+
+        // 生成用户NFT卡片
+        async function generateUserNFTCard(tokenId) {
+            try {
+                // 获取SVG
+                const svg = await contract.methods.generateSnakeSVG(tokenId).call();
+                
+                // 获取TokenURI
+                const tokenURI = await contract.methods.tokenURI(tokenId).call();
+                
+                // 解码Base64获取元数据
+                const base64Data = tokenURI.replace("data:application/json;base64,", "");
+                const jsonData = JSON.parse(atob(base64Data));
+                
+                // 创建NFT卡片
+                const myNftGrid = document.getElementById('myNftGrid');
+                const nftCard = document.createElement('div');
+                nftCard.className = 'nft-card';
+                nftCard.innerHTML = `
+                    <h3>${jsonData.name}</h3>
+                    <div class="nft-svg">
+                        ${svg}
+                    </div>
+                    <div class="nft-info">
+                        <p><strong>Token ID:</strong> ${tokenId}</p>
+                        <p><strong>描述:</strong> ${jsonData.description}</p>
+                        <p><strong>蛇码:</strong> ${jsonData.attributes[0].value}</p>
+                        <p><strong>颜色主题:</strong> <span style="color: ${jsonData.attributes[1].value}">${jsonData.attributes[1].value}</span></p>
+                        <p><strong>图案类型:</strong> ${jsonData.attributes[2].value}</p>
+                        <p><strong>状态:</strong> <span style="color: #28a745;">✅ 已拥有</span></p>
+                    </div>
+                `;
+                
+                // 添加到用户NFT网格
+                myNftGrid.appendChild(nftCard);
+                
+            } catch (error) {
+                console.error('生成用户NFT卡片失败:', error);
+            }
+        }
+
+        // 生成NFT卡片
+        async function generateNFTCard(tokenId) {
+            try {
+                // 获取SVG
+                const svg = await contract.methods.generateSnakeSVG(tokenId).call();
+                
+                // 获取TokenURI
+                const tokenURI = await contract.methods.tokenURI(tokenId).call();
+                
+                // 解码Base64获取元数据
+                const base64Data = tokenURI.replace("data:application/json;base64,", "");
+                const jsonData = JSON.parse(atob(base64Data));
+                
+                // 创建NFT卡片
+                const nftGrid = document.getElementById('nftGrid');
+                const nftCard = document.createElement('div');
+                nftCard.className = 'nft-card';
+                nftCard.innerHTML = `
+                    <h3>${jsonData.name}</h3>
+                    <div class="nft-svg">
+                        ${svg}
+                    </div>
+                    <div class="nft-info">
+                        <p><strong>Token ID:</strong> ${tokenId}</p>
+                        <p><strong>描述:</strong> ${jsonData.description}</p>
+                        <p><strong>蛇码:</strong> ${jsonData.attributes[0].value}</p>
+                        <p><strong>颜色主题:</strong> <span style="color: ${jsonData.attributes[1].value}">${jsonData.attributes[1].value}</span></p>
+                        <p><strong>图案类型:</strong> ${jsonData.attributes[2].value}</p>
+                    </div>
+                `;
+                
+                // 插入到网格开头
+                nftGrid.insertBefore(nftCard, nftGrid.firstChild);
+                
+            } catch (error) {
+                console.error('生成NFT卡片失败:', error);
+                showStatus('⚠️ NFT生成成功，但显示失败', 'info');
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // 更新我的NFT状态
+        function updateMyNftStatus(message) {
+            const statusElement = document.getElementById('myNftStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+
+        // 标签页切换
+        function switchTab(tabName) {
+            // 移除所有标签页的active类
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // 激活选中的标签页
+            if (tabName === 'latest') {
+                document.getElementById('latestTab').classList.add('active');
+                document.getElementById('latestTabContent').classList.add('active');
+            } else if (tabName === 'my') {
+                document.getElementById('myTab').classList.add('active');
+                document.getElementById('myTabContent').classList.add('active');
+                
+                // 如果切换到"我的NFT"标签，自动加载用户NFT
+                if (contract && userAccount) {
+                    loadUserNFTs();
+                }
+            }
+        }
+
+        // 检查MetaMask状态
+        function checkMetaMask() {
+            const connectBtn = document.getElementById('connectBtn');
+            const statusDiv = document.getElementById('statusDiv');
+            
+            if (typeof window.ethereum === 'undefined') {
+                connectBtn.disabled = true;
+                connectBtn.innerHTML = '请安装MetaMask';
+                connectBtn.style.background = '#6c757d';
+                showStatus('❌ 未检测到MetaMask，请安装MetaMask钱包扩展', 'error');
+            } else if (!window.ethereum.isMetaMask) {
+                connectBtn.disabled = true;
+                connectBtn.innerHTML = 'MetaMask未就绪';
+                connectBtn.style.background = '#6c757d';
+                showStatus('⚠️ MetaMask未完全加载，请刷新页面重试', 'warning');
+            } else {
+                connectBtn.disabled = false;
+                connectBtn.innerHTML = '连接MetaMask钱包';
+                connectBtn.style.background = '#007bff';
+                showStatus('✅ MetaMask已就绪，可以连接钱包', 'success');
+            }
+        }
+
+        // 页面加载时检查MetaMask
+        window.onload = function() {
+            checkMetaMask();
+        };
+
+        // 监听账户变化
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    // 用户断开连接
+                    location.reload();
+                } else {
+                    // 账户切换
+                    userAccount = accounts[0];
+                    location.reload();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                // 网络切换
+                location.reload();
+            });
+        }
+    </script>
+
+    <!-- Web3.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</body>
+</html>
+
