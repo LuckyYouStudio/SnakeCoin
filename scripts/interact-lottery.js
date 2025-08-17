@@ -5,7 +5,7 @@ async function main() {
     console.log("=====================================");
     
     // 合约地址 (需要替换为实际部署的地址)
-    const CONTRACT_ADDRESS = "0x..."; // 请替换为实际地址
+    const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3..."; // 请替换为实际地址
     
     // 获取签名者
     const [deployer] = await ethers.getSigners();

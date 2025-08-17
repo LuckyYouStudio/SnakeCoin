@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 蛇币NFT真实抽奖 - 修复版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .wallet-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .wallet-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .wallet-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .wallet-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            font-weight: bold;
+        }
+        
+        .wallet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .wallet-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .luckyou-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+        }
+        
+        .luckyou-btn:hover:not(:disabled) {
+            background: linear-gradient(45deg, #FF5252, #FF7676);
+        }
+
+        .wallet-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .lottery-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .lottery-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .lottery-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .lottery-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .lottery-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .contract-info {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .contract-info h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .contract-info p {
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        .connect-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .connect-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .connect-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 蛇币NFT真实抽奖</h1>
+            <p>连接 LuckYou 钱包，支付0.0001 ETH参与真实抽奖！</p>
+        </div>
+
+        <div class="wallet-section">
+            <h2>🔗 钱包连接</h2>
+            <div class="wallet-buttons">
+                <button id="luckyouBtn" class="wallet-btn luckyou-btn" onclick="connectLuckYou()">
+                    🍀 连接 LuckYou 钱包
+                </button>
+            </div>
+            <div id="walletInfo" class="wallet-info" style="display: none;">
+                <!-- 钱包信息将在这里显示 -->
+            </div>
+        </div>
+
+        <div class="lottery-section">
+            <h2>🎯 抽奖信息</h2>
+            
+            <div class="contract-info">
+                <h3>📋 合约信息</h3>
+                <p><strong>合约地址:</strong> <span id="contractAddress">未连接</span></p>
+                <p><strong>网络:</strong> <span id="networkInfo">未连接</span></p>
+            </div>
+
+            <div class="lottery-info">
+                <div class="info-card">
+                    <h3>抽奖价格</h3>
+                    <p id="lotteryPrice">0.0001 ETH</p>
+                </div>
+                <div class="info-card">
+                    <h3>池子大小</h3>
+                    <p id="poolSize">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>已铸造</h3>
+                    <p id="totalMinted">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>剩余数量</h3>
+                    <p id="remainingSupply">-</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="refreshInfoBtn" class="connect-btn" onclick="refreshContractInfo()">
+                    🔄 刷新合约信息
+                </button>
+                <button id="diagnoseBtn" class="connect-btn" onclick="diagnoseNetwork()" style="background: #17a2b8;">
+                    🔍 网络诊断
+                </button>
+            </div>
+
+            <button id="lotteryBtn" class="lottery-btn" onclick="playLottery()" disabled>
+                请先连接钱包
+            </button>
+
+            <div id="statusDiv"></div>
+        </div>
+    </div>
+
+    <script>
+        // 合约配置
+        const CONTRACT_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
+        
+        // 简化的ABI，只包含必要的方法签名
+        const ABI_SIGNATURES = {
+            lotteryPrice: '0x8c172fa2',
+            getPoolSize: '0x1b8a3c32',
+            totalSupply: '0x18160ddd',
+            playLottery: '0xb2a1038b'
+        };
+
+        let walletProvider;
+        let userAccount;
+        let userBalance;
+        let currentWalletName;
+
+        // 连接 LuckYou 钱包
+        async function connectLuckYou() {
+            const luckyouBtn = document.getElementById('luckyouBtn');
+            const walletInfo = document.getElementById('walletInfo');
+            
+            try {
+                // 禁用按钮
+                luckyouBtn.disabled = true;
+                luckyouBtn.innerHTML = '<span class="spinner"></span> 连接中...';
+                
+                let provider;
+                let walletName = 'LuckYou Wallet';
+                
+                // 检测 LuckYou 钱包
+                if (typeof window.luckYou !== 'undefined') {
+                    provider = window.luckYou;
+                    console.log('使用主要 LuckYou 钱包对象');
+                } else if (window.luckyouWallet && window.luckyouWallet.isLuckYouWallet) {
+                    provider = window.luckyouWallet;
+                    console.log('使用替代 LuckYou 钱包对象');
+                } else {
+                    throw new Error('未检测到 LuckYou 钱包，请安装 LuckYou 钱包扩展！');
+                }
+                
+                // 保存钱包提供者
+                walletProvider = provider;
+                currentWalletName = walletName;
+                
+                console.log('LuckYou 钱包提供者:', provider);
+                
+                // 请求账户连接
+                const accounts = await provider.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                userAccount = accounts[0];
+                console.log('LuckYou 钱包账户地址:', userAccount);
+                
+                // 检查网络
+                let chainId;
+                let networkName;
+                try {
+                    chainId = await provider.request({ method: 'eth_chainId' });
+                    networkName = getNetworkName(chainId);
+                    console.log('LuckYou 钱包网络 Chain ID:', chainId);
+                    console.log('LuckYou 钱包网络名称:', networkName);
+                    
+                    // 检查网络是否匹配
+                    if (chainId !== '0x539' && chainId !== '0x31337' && chainId !== '0x7a69') {
+                        showStatus('⚠️ 当前网络不匹配，尝试切换到本地 Hardhat 网络', 'info');
+                        
+                        // 尝试切换到正确的网络
+                        try {
+                            await provider.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: '0x7a69' }]
+                            });
+                            console.log('已切换到 Hardhat 网络');
+                            chainId = '0x7a69';
+                            networkName = 'Hardhat Local Network';
+                        } catch (switchError) {
+                            console.warn('网络切换失败:', switchError);
+                            showStatus('❌ 请手动切换到本地 Hardhat 网络 (Chain ID: 31337)', 'error');
+                            luckyouBtn.disabled = false;
+                            luckyouBtn.innerHTML = '🍀 连接 LuckYou 钱包';
+                            return;
+                        }
+                    }
+                } catch (networkError) {
+                    console.error('获取网络信息失败:', networkError);
+                    chainId = '0x7a69';
+                    networkName = 'Hardhat Local Network';
+                }
+                
+                // 获取用户余额 - 使用原始方法避免解码问题
+                try {
+                    const balanceResult = await provider.request({
+                        method: 'eth_getBalance',
+                        params: [userAccount, 'latest']
+                    });
+                    
+                    console.log('余额查询结果:', balanceResult);
+                    
+                    // 处理不同的返回格式
+                    if (balanceResult && typeof balanceResult === 'object' && balanceResult.error) {
+                        console.warn('余额查询返回错误:', balanceResult.error);
+                        userBalance = '0x0';
+                    } else if (typeof balanceResult === 'string') {
+                        userBalance = balanceResult;
+                    } else {
+                        userBalance = '0x0';
+                    }
+                    
+                } catch (balanceError) {
+                    console.error('获取余额失败:', balanceError);
+                    userBalance = '0x0';
+                }
+                
+                // 更新UI
+                updateWalletInfo(userAccount, userBalance, networkName, walletName);
+                await updateLotteryInfo();
+                enableLottery();
+                
+                // 更新按钮状态
+                luckyouBtn.innerHTML = '✅ 钱包已连接';
+                luckyouBtn.style.background = '#28a745';
+                luckyouBtn.onclick = disconnectWallet;
+                
+                showStatus(`✅ ${walletName} 连接成功！`, 'success');
+                
+            } catch (error) {
+                console.error('LuckYou 连接失败:', error);
+                showStatus(`❌ LuckYou 连接失败: ${error.message}`, 'error');
+                
+                // 恢复按钮状态
+                luckyouBtn.disabled = false;
+                luckyouBtn.innerHTML = '🍀 连接 LuckYou 钱包';
+                luckyouBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
+                luckyouBtn.onclick = connectLuckYou;
+            }
+        }
+
+        // 断开钱包连接
+        function disconnectWallet() {
+            const luckyouBtn = document.getElementById('luckyouBtn');
+            const walletInfo = document.getElementById('walletInfo');
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            
+            // 重置状态
+            userAccount = null;
+            userBalance = null;
+            walletProvider = null;
+            currentWalletName = null;
+            
+            // 更新UI
+            walletInfo.style.display = 'none';
+            lotteryBtn.disabled = true;
+            lotteryBtn.innerHTML = '请先连接钱包';
+            
+            // 重置按钮状态
+            luckyouBtn.disabled = false;
+            luckyouBtn.innerHTML = '🍀 连接 LuckYou 钱包';
+            luckyouBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
+            luckyouBtn.onclick = connectLuckYou;
+            
+            showStatus('🔌 钱包已断开连接', 'info');
+        }
+
+        // 更新钱包信息
+        function updateWalletInfo(account, balance, network, walletName) {
+            const walletInfo = document.getElementById('walletInfo');
+            const contractAddress = document.getElementById('contractAddress');
+            const networkInfo = document.getElementById('networkInfo');
+            
+            walletInfo.style.display = 'block';
+            
+            // 安全地转换余额显示
+            let balanceDisplay = '0 ETH';
+            try {
+                if (balance && typeof balance === 'string' && balance !== '0x0') {
+                    const balanceWei = BigInt(balance);
+                    const balanceEth = Number(balanceWei) / Math.pow(10, 18);
+                    balanceDisplay = `${balanceEth.toFixed(6)} ETH`;
+                }
+            } catch (error) {
+                console.error('余额转换失败:', error);
+                balanceDisplay = '0 ETH';
+            }
+            
+            walletInfo.innerHTML = `
+                <p><strong>钱包类型:</strong> ${walletName}</p>
+                <p><strong>账户地址:</strong> ${account}</p>
+                <p><strong>账户余额:</strong> ${balanceDisplay}</p>
+                <p><strong>网络:</strong> ${network}</p>
+            `;
+            
+            contractAddress.textContent = CONTRACT_ADDRESS;
+            networkInfo.textContent = network;
+        }
+
+        // 获取网络名称
+        function getNetworkName(chainId) {
+            const networks = {
+                '0x1': 'Ethereum Mainnet',
+                '0x3': 'Ropsten Testnet',
+                '0x4': 'Rinkeby Testnet',
+                '0x5': 'Goerli Testnet',
+                '0x2a': 'Kovan Testnet',
+                '0x7a69': 'Hardhat Local Network',
+                '0x539': 'Hardhat Local Network',
+                '0x31337': 'Hardhat Local Network'
+            };
+            return networks[chainId] || `Chain ID: ${chainId}`;
+        }
+
+        // 启用抽奖
+        function enableLottery() {
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            lotteryBtn.disabled = false;
+            lotteryBtn.innerHTML = '🎲 开始抽奖 (0.0001 ETH)';
+        }
+
+        // 原始合约调用方法 - 避免Web3.js ABI解码问题
+        async function rawContractCall(methodSignature, decodeType = 'uint256') {
+            if (!walletProvider) {
+                throw new Error('钱包未连接');
+            }
+
+            try {
+                const result = await walletProvider.request({
+                    method: 'eth_call',
+                    params: [{
+                        to: CONTRACT_ADDRESS,
+                        data: methodSignature
+                    }, 'latest']
+                });
+
+                console.log(`原始调用结果 ${methodSignature}:`, result);
+
+                // 简单的结果处理
+                if (result && typeof result === 'string' && result.startsWith('0x')) {
+                    if (decodeType === 'uint256') {
+                        return BigInt(result).toString();
+                    }
+                }
+                return '0';
+            } catch (error) {
+                console.error(`合约调用失败 ${methodSignature}:`, error);
+                return '0';
+            }
+        }
+
+        // 更新抽奖信息
+        async function updateLotteryInfo() {
+            if (!walletProvider) {
+                console.log('钱包未连接，跳过更新抽奖信息');
+                return;
+            }
+            
+            try {
+                console.log('开始获取实时抽奖信息...');
+                
+                // 使用原始调用方法
+                const price = await rawContractCall(ABI_SIGNATURES.lotteryPrice);
+                const poolSize = await rawContractCall(ABI_SIGNATURES.getPoolSize);
+                const totalMinted = await rawContractCall(ABI_SIGNATURES.totalSupply);
+                
+                console.log('获取到的数据:', { price, poolSize, totalMinted });
+                
+                // 计算剩余数量
+                const maxSupply = 1000;
+                const remaining = maxSupply - parseInt(totalMinted || 0);
+                
+                // 更新UI
+                try {
+                    const priceInEth = (BigInt(price || 0) / BigInt(Math.pow(10, 18))).toString();
+                    document.getElementById('lotteryPrice').textContent = `${priceInEth} ETH`;
+                    document.getElementById('poolSize').textContent = poolSize || '0';
+                    document.getElementById('totalMinted').textContent = totalMinted || '0';
+                    document.getElementById('remainingSupply').textContent = remaining.toString();
+                    
+                    console.log('抽奖信息更新成功');
+                    showStatus('🔄 抽奖信息已更新', 'info');
+                    
+                } catch (uiError) {
+                    console.error('更新UI失败:', uiError);
+                }
+                
+            } catch (error) {
+                console.error('获取抽奖信息失败:', error);
+                showStatus('⚠️ 无法获取实时抽奖信息，请检查网络连接', 'info');
+            }
+        }
+
+        // 刷新合约信息
+        async function refreshContractInfo() {
+            if (walletProvider) {
+                console.log('使用已连接的钱包刷新合约信息');
+                await updateLotteryInfo();
+            } else {
+                showStatus('❌ 请先连接钱包', 'error');
+            }
+        }
+
+        // 网络诊断
+        async function diagnoseNetwork() {
+            if (!walletProvider) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('🔍 正在诊断网络...', 'info');
+                console.log('开始网络诊断...');
+                
+                // 获取网络信息
+                const chainId = await walletProvider.request({ method: 'eth_chainId' });
+                const networkName = getNetworkName(chainId);
+                console.log('当前网络 Chain ID:', chainId);
+                console.log('当前网络名称:', networkName);
+                
+                // 检查网络是否匹配
+                if (chainId !== '0x539' && chainId !== '0x31337' && chainId !== '0x7a69') {
+                    showStatus('⚠️ 当前网络不匹配，合约地址仅适用于本地 Hardhat 网络', 'error');
+                    return;
+                }
+                
+                // 获取最新区块
+                const latestBlock = await walletProvider.request({
+                    method: 'eth_getBlockByNumber',
+                    params: ['latest', false]
+                });
+                console.log('最新区块号:', latestBlock.number);
+                
+                // 检查合约代码
+                const code = await walletProvider.request({
+                    method: 'eth_getCode',
+                    params: [CONTRACT_ADDRESS, 'latest']
+                });
+                
+                if (!code || code === '0x' || code === '0x0') {
+                    showStatus('❌ 合约未部署或地址错误', 'error');
+                    return;
+                }
+                
+                console.log('合约代码长度:', code.length);
+                
+                // 测试合约调用
+                const testResult = await rawContractCall(ABI_SIGNATURES.lotteryPrice);
+                console.log('测试合约调用结果:', testResult);
+                
+                showStatus('✅ 网络诊断完成，一切正常！', 'success');
+                
+            } catch (error) {
+                console.error('网络诊断失败:', error);
+                showStatus(`❌ 网络诊断失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 抽奖功能
+        async function playLottery() {
+            if (!walletProvider || !userAccount) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            const originalText = lotteryBtn.innerHTML;
+            
+            try {
+                // 禁用按钮
+                lotteryBtn.disabled = true;
+                lotteryBtn.innerHTML = '<span class="spinner"></span> 抽奖中...';
+                
+                // 获取抽奖价格
+                const priceStr = await rawContractCall(ABI_SIGNATURES.lotteryPrice);
+                const price = '0x' + BigInt(priceStr).toString(16);
+                
+                console.log('抽奖价格:', price);
+                
+                // 检查余额
+                const balanceStr = await walletProvider.request({
+                    method: 'eth_getBalance',
+                    params: [userAccount, 'latest']
+                });
+                
+                const userBalanceBig = BigInt(balanceStr);
+                const priceBig = BigInt(price);
+                
+                if (userBalanceBig < priceBig) {
+                    throw new Error('余额不足，无法支付抽奖费用');
+                }
+                
+                // 发送抽奖交易
+                const txHash = await walletProvider.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: userAccount,
+                        to: CONTRACT_ADDRESS,
+                        value: price,
+                        data: ABI_SIGNATURES.playLottery,
+                        gas: '0x493e0' // 300000
+                    }]
+                });
+                
+                console.log('交易哈希:', txHash);
+                showStatus(`🎉 抽奖交易已提交！交易哈希: ${txHash}`, 'success');
+                
+                // 更新信息
+                await updateLotteryInfo();
+                
+            } catch (error) {
+                console.error('抽奖失败:', error);
+                showStatus(`❌ 抽奖失败: ${error.message}`, 'error');
+            } finally {
+                // 恢复按钮状态
+                lotteryBtn.disabled = false;
+                lotteryBtn.innerHTML = originalText;
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 8000);
+        }
+
+        // 检查钱包状态
+        function checkWallet() {
+            const luckyouBtn = document.getElementById('luckyouBtn');
+            
+            // 检测 LuckYou Wallet
+            let luckyouAvailable = false;
+            
+            if (typeof window.luckYou !== 'undefined' || (window.luckyouWallet && window.luckyouWallet.isLuckYouWallet)) {
+                luckyouAvailable = true;
+                console.log('✅ LuckYou 钱包可用');
+            } else {
+                console.log('❌ LuckYou 钱包不可用');
+            }
+            
+            // 更新按钮状态
+            if (luckyouAvailable) {
+                luckyouBtn.disabled = false;
+                luckyouBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
+                showStatus('✅ LuckYou 钱包已就绪！', 'success');
+            } else {
+                luckyouBtn.disabled = true;
+                luckyouBtn.style.background = '#6c757d';
+                luckyouBtn.innerHTML = '❌ 请安装 LuckYou 钱包';
+                showStatus('❌ 未检测到 LuckYou 钱包，请安装扩展', 'error');
+            }
+        }
+
+        // 页面加载时检查钱包
+        window.onload = function() {
+            console.log('页面加载完成，检查钱包状态...');
+            
+            console.log('window.luckYou:', typeof window.luckYou !== 'undefined' ? '已定义' : '未定义');
+            console.log('window.luckyouWallet:', typeof window.luckyouWallet !== 'undefined' ? '已定义' : '未定义');
+            if (window.luckyouWallet) {
+                console.log('window.luckyouWallet.isLuckYouWallet:', window.luckyouWallet.isLuckYouWallet);
+            }
+            
+            // 延迟检查钱包，确保扩展加载完成
+            setTimeout(() => {
+                checkWallet();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
