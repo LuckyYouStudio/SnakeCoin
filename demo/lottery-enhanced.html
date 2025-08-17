@@ -1615,31 +1615,20 @@
                 
                 console.log('🔍 正在加载抽奖结果NFT...');
                 
-                // 获取用户拥有的NFT数量
-                const balanceResult = await rawContractCall(
-                    ABI_SIGNATURES.balanceOf + userAccount.slice(2).padStart(64, '0')
-                );
+                // 使用完整的NFT加载函数
+                const nfts = await loadUserNFTsComplete();
                 
-                const balance = parseInt(balanceResult || '0');
-                console.log('用户NFT数量:', balance);
-                
-                if (balance === 0) {
+                if (nfts.length > 0) {
+                    // 只显示最新的5个NFT作为抽奖结果
+                    const recentNFTs = nfts.slice(0, 5);
+                    lotteryResults = recentNFTs;
+                    // container会在loadUserNFTsComplete中被更新，这里不需要再次调用displayNFTs
+                    console.log(`✅ 成功加载 ${recentNFTs.length} 个最近抽奖NFT`);
+                } else {
                     container.innerHTML = '';
                     emptyState.style.display = 'block';
                     emptyState.querySelector('p').textContent = '您还没有通过抽奖获得NFT，快去试试运气吧！';
-                    return;
-                }
-                
-                // 扫描用户拥有的NFT（由于没有tokenOfOwnerByIndex方法）
-                const nfts = await scanUserNFTs(Math.min(balance, 5));
-                console.log('找到的最近抽奖NFT:', nfts.length);
-                
-                lotteryResults = nfts;
-                displayNFTs(nfts, container);
-                
-                if (nfts.length === 0) {
-                    emptyState.style.display = 'block';
-                    emptyState.querySelector('p').textContent = '暂时无法加载抽奖结果，请稍后重试';
+                    lotteryResults = [];
                 }
                 
             } catch (error) {
@@ -1675,31 +1664,18 @@
                 
                 console.log('🔍 正在加载所有拥有的NFT...');
                 
-                // 获取用户拥有的NFT数量
-                const balanceResult = await rawContractCall(
-                    ABI_SIGNATURES.balanceOf + userAccount.slice(2).padStart(64, '0')
-                );
+                // 使用完整的NFT加载函数
+                const nfts = await loadUserNFTsComplete();
                 
-                const balance = parseInt(balanceResult || '0');
-                console.log('用户NFT总数量:', balance);
-                
-                if (balance === 0) {
+                if (nfts.length > 0) {
+                    userNFTs = nfts;
+                    // 清空container，因为loadUserNFTsComplete已经显示了NFT
+                    // container会在loadUserNFTsComplete中被更新
+                    console.log(`✅ 成功加载 ${nfts.length} 个NFT到收藏页面`);
+                } else {
                     container.innerHTML = '';
                     emptyState.style.display = 'block';
                     emptyState.querySelector('p').textContent = '您还没有拥有任何蛇币NFT，快去抽奖获取吧！';
-                    return;
-                }
-                
-                // 扫描用户拥有的所有NFT
-                const nfts = await scanUserNFTs(balance);
-                console.log('找到的用户NFT总数:', nfts.length);
-                
-                userNFTs = nfts;
-                displayNFTs(nfts, container);
-                
-                if (nfts.length === 0) {
-                    emptyState.style.display = 'block';
-                    emptyState.querySelector('p').textContent = '暂时无法加载NFT数据，请稍后重试';
                 }
                 
             } catch (error) {
@@ -1970,7 +1946,8 @@
             const userNFTs = [];
             
             try {
-                console.log(`🔍 开始扫描用户NFT，期望找到 ${expectedCount} 个`);
+                console.log('=== 开始扫描用户NFT ===');
+                console.log(`🔍 期望找到 ${expectedCount} 个NFT`);
                 console.log(`👤 用户地址: ${userAccount}`);
                 
                 // 获取总供应量
@@ -1978,13 +1955,27 @@
                 const totalSupply = parseInt(totalSupplyResult || '0');
                 
                 console.log(`📊 总供应量: ${totalSupply}`);
-                console.log(`🔍 扫描范围: Token ID 0 到 ${totalSupply - 1}`);
+                
+                if (totalSupply === 0) {
+                    console.log('⚠️ 总供应量为0，没有NFT可扫描');
+                    return userNFTs;
+                }
+                
+                // 更新扫描状态（如果需要）
+                updateScanningStatus(`🔍 正在查找您的NFT...`);
+                
+                // 遍历所有可能的tokenId，检查用户是否拥有
+                let userNFTCount = 0;
+                const maxSupply = Math.min(totalSupply, 1000); // 限制扫描范围，避免超时
+                const userTokenIds = []; // 存储找到的Token ID
+                
+                // 分批处理，避免一次性处理太多请求
+                const batchSize = 20; // 减小批次大小，避免RPC超时
+                let processedCount = 0;
                 
                 // 从最新的NFT开始扫描（倒序），这样抽奖结果会优先显示
-                for (let tokenId = totalSupply - 1; tokenId >= 0 && userNFTs.length < expectedCount; tokenId--) {
+                for (let tokenId = totalSupply - 1; tokenId >= 0 && userNFTCount < expectedCount; tokenId--) {
                     try {
-                        console.log(`🔎 检查Token ID ${tokenId}的拥有者...`);
-                        
                         // 检查该tokenId的拥有者
                         const ownerResult = await rawContractCall(
                             ABI_SIGNATURES.ownerOf + 
@@ -1992,38 +1983,240 @@
                             'address'
                         );
                         
-                        console.log(`📋 Token ID ${tokenId} ownerOf结果:`, ownerResult);
+                        if (processedCount < 10) { // 只记录前10个的详细信息
+                            console.log(`Token ${tokenId} 的所有者:`, ownerResult);
+                        }
                         
                         if (ownerResult && ownerResult !== '0x' && ownerResult !== '0x0000000000000000000000000000000000000000') {
-                            console.log(`🏠 Token ID ${tokenId} 拥有者: ${ownerResult}`);
-                            console.log(`👤 用户地址: ${userAccount.toLowerCase()}`);
-                            console.log(`🔍 地址匹配检查: ${ownerResult} === ${userAccount.toLowerCase()} ?`);
-                            
                             if (ownerResult === userAccount.toLowerCase()) {
-                                console.log(`✅ 找到用户NFT: Token ID ${tokenId}`);
-                                
-                                const nftData = await loadNFTData(tokenId);
-                                if (nftData) {
-                                    userNFTs.push(nftData);
-                                    console.log(`📦 已添加NFT ${tokenId}，当前总数: ${userNFTs.length}`);
-                                }
-                            } else {
-                                console.log(`❌ Token ID ${tokenId} 不属于当前用户`);
+                                console.log(`✅ 找到用户拥有的NFT: Token ${tokenId}`);
+                                userTokenIds.push(tokenId);
+                                userNFTCount++;
+                            } else if (processedCount < 10) {
+                                console.log(`❌ Token ${tokenId} 不属于当前用户`);
                             }
-                        } else {
-                            console.log(`⚠️ Token ID ${tokenId} 无有效拥有者`);
+                        } else if (processedCount < 10) {
+                            console.log(`⚠️ Token ${tokenId} 无有效拥有者`);
                         }
+                        
+                        processedCount++;
+                        
+                        // 每处理一批，更新状态
+                        if (processedCount % batchSize === 0) {
+                            updateScanningStatus(`🔍 已检查 ${processedCount}/${totalSupply} 个Token...`);
+                            console.log(`已处理 ${processedCount}/${totalSupply} 个Token，找到 ${userNFTCount} 个NFT`);
+                            
+                            // 添加短暂延迟，避免请求过于频繁
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                        
                     } catch (error) {
-                        console.warn(`⚠️ 扫描Token ID ${tokenId} 失败:`, error);
-                        // 继续扫描其他NFT
+                        // token不存在或出错，继续下一个
+                        if (processedCount < 10) { // 只记录前10个错误
+                            console.log(`Token ${tokenId} 不存在或出错:`, error.message);
+                        }
+                        processedCount++;
+                        continue;
                     }
                 }
                 
-                console.log(`🎉 扫描完成！找到 ${userNFTs.length} 个用户NFT`);
+                console.log('=== 扫描完成 ===');
+                console.log('用户拥有NFT数量:', userNFTCount);
+                console.log('找到的NFT Token IDs:', userTokenIds);
+                
+                if (userNFTCount > 0) {
+                    updateScanningStatus(`✅ 找到 ${userNFTCount} 个NFT，正在加载详细信息...`);
+                    
+                    // 按倒序排列，最新的排在前面
+                    userTokenIds.sort((a, b) => b - a);
+                    console.log('倒序排列后的NFT Token IDs:', userTokenIds);
+                    
+                    // 加载每个NFT的详细数据
+                    for (const tokenId of userTokenIds) {
+                        try {
+                            updateScanningStatus(`📦 正在加载NFT ${tokenId}...`);
+                            const nftData = await loadNFTData(tokenId);
+                            if (nftData) {
+                                userNFTs.push(nftData);
+                                console.log(`📦 已添加NFT ${tokenId}，当前总数: ${userNFTs.length}`);
+                            }
+                        } catch (nftError) {
+                            console.error(`加载NFT ${tokenId} 数据失败:`, nftError);
+                            // 继续加载其他NFT
+                        }
+                    }
+                    
+                    updateScanningStatus(`✅ 完成！成功加载 ${userNFTs.length} 个NFT`);
+                } else {
+                    updateScanningStatus('📭 您还没有任何NFT');
+                    console.log('用户没有找到任何NFT，可能的原因:');
+                    console.log('1. 用户确实没有NFT');
+                    console.log('2. 网络不同步');
+                    console.log('3. 合约调用权限问题');
+                    console.log('4. 钱包RPC节点问题');
+                }
+                
+                console.log(`🎉 最终扫描结果：找到 ${userNFTs.length} 个用户NFT`);
                 return userNFTs;
                 
             } catch (error) {
                 console.error('❌ 扫描用户NFT失败:', error);
+                updateScanningStatus('❌ 扫描失败，请重试');
+                return [];
+            }
+        }
+        
+        // 更新扫描状态（辅助函数）
+        function updateScanningStatus(message) {
+            // 尝试更新不同位置的状态显示
+            const statusElements = [
+                document.querySelector('#lottery-results .empty-state p'),
+                document.querySelector('#owned-nfts .empty-state p'),
+                document.querySelector('.nft-status') // 如果有状态栏
+            ];
+            
+            statusElements.forEach(element => {
+                if (element) {
+                    element.textContent = message;
+                }
+            });
+            
+            console.log(`[状态更新] ${message}`);
+        }
+
+        // 完整的用户NFT加载函数（类似lottery-real的实现）
+        async function loadUserNFTsComplete() {
+            if (!walletProvider || !userAccount) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+            
+            try {
+                console.log('=== 开始完整加载用户NFT ===');
+                console.log('用户地址:', userAccount);
+                console.log('合约地址:', CONTRACT_ADDRESS);
+                
+                // 获取总供应量
+                const totalSupplyResult = await rawContractCall(ABI_SIGNATURES.totalSupply);
+                const totalSupply = parseInt(totalSupplyResult || '0');
+                console.log('总供应量:', totalSupply.toString());
+                
+                if (totalSupply === 0) {
+                    showStatus('📭 目前还没有任何NFT', 'info');
+                    return [];
+                }
+                
+                showStatus('🔍 正在查找您的NFT...', 'info');
+                console.log('开始查找用户NFT，用户地址:', userAccount);
+                
+                // 遍历所有可能的tokenId，检查用户是否拥有
+                let userNFTCount = 0;
+                const maxSupply = Math.min(totalSupply, 1000); // 限制扫描范围
+                const userNFTs = []; // 存储找到的NFT信息
+                
+                // 分批处理，避免一次性处理太多请求
+                const batchSize = 30;
+                let processedCount = 0;
+                
+                for (let tokenId = 0; tokenId < maxSupply; tokenId++) {
+                    try {
+                        // 检查token是否存在
+                        const ownerResult = await rawContractCall(
+                            ABI_SIGNATURES.ownerOf + 
+                            tokenId.toString(16).padStart(64, '0'),
+                            'address'
+                        );
+                        
+                        if (processedCount < 10) { // 只记录前10个的详细信息
+                            console.log(`Token ${tokenId} 的所有者:`, ownerResult);
+                        }
+                        
+                        if (ownerResult && ownerResult !== '0x' && 
+                            ownerResult !== '0x0000000000000000000000000000000000000000' &&
+                            ownerResult === userAccount.toLowerCase()) {
+                            // 用户拥有这个NFT，先收集信息，不立即生成卡片
+                            console.log(`✅ 找到用户拥有的NFT: Token ${tokenId}`);
+                            userNFTs.push(tokenId);
+                            userNFTCount++;
+                        }
+                        
+                        processedCount++;
+                        
+                        // 每处理一批，更新状态
+                        if (processedCount % batchSize === 0) {
+                            showStatus(`🔍 已检查 ${processedCount}/${maxSupply} 个Token，找到 ${userNFTCount} 个NFT...`, 'info');
+                            console.log(`已处理 ${processedCount}/${maxSupply} 个Token，找到 ${userNFTCount} 个NFT`);
+                            
+                            // 添加短暂延迟，避免请求过于频繁
+                            await new Promise(resolve => setTimeout(resolve, 50));
+                        }
+                        
+                    } catch (error) {
+                        // token不存在，继续下一个
+                        if (processedCount < 10) { // 只记录前10个错误
+                            console.log(`Token ${tokenId} 不存在或出错:`, error.message);
+                        }
+                        processedCount++;
+                        continue;
+                    }
+                }
+                
+                console.log('=== 查找完成 ===');
+                console.log('用户拥有NFT数量:', userNFTCount);
+                console.log('找到的NFT Token IDs:', userNFTs);
+                
+                if (userNFTCount > 0) {
+                    showStatus(`✅ 找到 ${userNFTCount} 个NFT，正在加载详细信息...`, 'success');
+                    
+                    // 按倒序排列，最新的排在前面
+                    userNFTs.sort((a, b) => b - a);
+                    console.log('倒序排列后的NFT Token IDs:', userNFTs);
+                    
+                    // 加载NFT详细数据
+                    const nftDataList = [];
+                    for (const tokenId of userNFTs) {
+                        try {
+                            const nftData = await loadNFTData(tokenId);
+                            if (nftData) {
+                                nftDataList.push(nftData);
+                                console.log(`📦 已加载NFT ${tokenId} 详细信息`);
+                            }
+                        } catch (nftError) {
+                            console.error(`加载NFT ${tokenId} 数据失败:`, nftError);
+                        }
+                    }
+                    
+                    showStatus(`✅ 成功加载 ${nftDataList.length} 个NFT！`, 'success');
+                    
+                    // 显示在两个标签页
+                    const lotteryContainer = document.getElementById('lottery-nfts');
+                    const ownedContainer = document.getElementById('owned-nfts-grid');
+                    
+                    // 显示最新的5个在抽奖结果页
+                    const recentNFTs = nftDataList.slice(0, 5);
+                    displayNFTs(recentNFTs, lotteryContainer);
+                    document.querySelector('#lottery-results .empty-state').style.display = 'none';
+                    
+                    // 显示所有的在拥有页面
+                    displayNFTs(nftDataList, ownedContainer);
+                    document.querySelector('#owned-nfts .empty-state').style.display = 'none';
+                    
+                    return nftDataList;
+                    
+                } else {
+                    showStatus('📭 您还没有任何NFT', 'info');
+                    console.log('用户没有找到任何NFT，可能的原因:');
+                    console.log('1. 用户确实没有NFT');
+                    console.log('2. 网络不同步');
+                    console.log('3. 合约调用权限问题');
+                    console.log('4. 钱包RPC节点问题');
+                    return [];
+                }
+                
+            } catch (error) {
+                console.error('加载用户NFT失败:', error);
+                console.error('错误详情:', error.message, error.stack);
+                showStatus('⚠️ 加载用户NFT失败: ' + error.message, 'error');
                 return [];
             }
         }
@@ -2039,49 +2232,14 @@
             showStatus('🐛 开始调试NFT加载，请查看浏览器控制台', 'info');
             
             try {
-                // 1. 检查合约连接
-                console.log('🔍 1. 检查合约连接...');
-                console.log('合约地址:', CONTRACT_ADDRESS);
-                console.log('用户地址:', userAccount);
-                
-                // 2. 检查用户余额
-                console.log('🔍 2. 检查用户NFT余额...');
-                const balanceResult = await rawContractCall(
-                    ABI_SIGNATURES.balanceOf + userAccount.slice(2).padStart(64, '0')
-                );
-                const balance = parseInt(balanceResult || '0');
-                console.log('用户NFT余额:', balance);
-                
-                if (balance === 0) {
-                    console.log('⚠️ 用户NFT余额为0，无NFT可显示');
-                    showStatus('⚠️ 您当前没有拥有任何NFT', 'warning');
-                    return;
-                }
-                
-                // 3. 测试扫描最新的3个NFT
-                console.log('🔍 3. 测试扫描用户NFT...');
-                const nfts = await scanUserNFTs(3);
-                console.log('扫描到的NFT:', nfts);
+                // 使用完整的NFT加载函数进行调试
+                const nfts = await loadUserNFTsComplete();
                 
                 if (nfts.length > 0) {
-                    console.log('✅ 找到NFT，尝试显示...');
-                    
-                    // 测试显示在当前活动标签页
-                    if (currentActiveTab === 'lottery-results') {
-                        const container = document.getElementById('lottery-nfts');
-                        const emptyState = document.querySelector('#lottery-results .empty-state');
-                        emptyState.style.display = 'none';
-                        displayNFTs(nfts, container);
-                        showStatus(`✅ 调试成功！找到并显示了 ${nfts.length} 个NFT`, 'success');
-                    } else {
-                        const container = document.getElementById('owned-nfts-grid');
-                        const emptyState = document.querySelector('#owned-nfts .empty-state');
-                        emptyState.style.display = 'none';
-                        displayNFTs(nfts, container);
-                        showStatus(`✅ 调试成功！找到并显示了 ${nfts.length} 个NFT`, 'success');
-                    }
+                    console.log('✅ 调试成功！找到NFT:', nfts.length);
+                    showStatus(`✅ 调试成功！找到并显示了 ${nfts.length} 个NFT`, 'success');
                 } else {
-                    console.log('❌ 没有找到任何NFT');
+                    console.log('❌ 调试完成，但没有找到任何NFT');
                     showStatus('❌ 调试完成，但没有找到任何NFT', 'error');
                 }
                 
