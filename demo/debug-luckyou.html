@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍀 LuckYou 钱包连接调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+        .error { background: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+        .success { background: #d4edda; border-left-color: #28a745; color: #155724; }
+        .warning { background: #fff3cd; border-left-color: #ffc107; color: #856404; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        .info { color: #0066cc; }
+        .error-log { color: #dc3545; }
+        .success-log { color: #28a745; }
+        .warning-log { color: #ff8c00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍀 LuckYou 钱包连接调试</h1>
+        <p>专门用于调试LuckYou钱包连接问题的详细调试页面</p>
+
+        <!-- 检测状态 -->
+        <div class="debug-section">
+            <h3>🔍 检测状态</h3>
+            <p><strong>window.ethereum:</strong> <span id="windowEthereum">检测中...</span></p>
+            <p><strong>window.luckyouWallet:</strong> <span id="windowLuckyou">检测中...</span></p>
+            <p><strong>isLuckYouWallet:</strong> <span id="isLuckyouWallet">检测中...</span></p>
+            <p><strong>Provider类型:</strong> <span id="providerType">未知</span></p>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="debug-section">
+            <h3>🎮 控制面板</h3>
+            <button onclick="detectProviders()">🔍 检测Provider</button>
+            <button onclick="testBasicConnection()">🔌 测试基本连接</button>
+            <button onclick="requestAccounts()">👤 请求账户</button>
+            <button onclick="getAccounts()">📋 获取账户</button>
+            <button onclick="getChainId()">🌐 获取Chain ID</button>
+            <button onclick="clearLog()">🧹 清除日志</button>
+        </div>
+
+        <!-- 调试日志 -->
+        <div class="debug-section">
+            <h3>📝 详细日志</h3>
+            <div id="debugLog" class="log">等待操作...</div>
+        </div>
+
+        <!-- 解决方案建议 -->
+        <div class="debug-section">
+            <h3>💡 解决方案建议</h3>
+            <div id="suggestions">
+                <p>根据调试结果，这里会显示具体的解决建议...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let luckyouProvider = null;
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('debugLog');
+            const logClass = type === 'error' ? 'error-log' : 
+                            type === 'success' ? 'success-log' : 
+                            type === 'warning' ? 'warning-log' : 'info';
+            logElement.innerHTML += `<div class="${logClass}">[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('debugLog').innerHTML = '日志已清除\n';
+        }
+
+        // 检测所有provider
+        function detectProviders() {
+            log('=== 开始检测Provider ===');
+            
+            // 检测 window.ethereum
+            const hasWindowEthereum = !!window.ethereum;
+            document.getElementById('windowEthereum').textContent = hasWindowEthereum ? '✅ 存在' : '❌ 不存在';
+            log(`window.ethereum: ${hasWindowEthereum}`);
+            
+            if (hasWindowEthereum) {
+                log(`window.ethereum.isMetaMask: ${window.ethereum.isMetaMask}`);
+                log(`window.ethereum.isLuckYouWallet: ${window.ethereum.isLuckYouWallet}`);
+                
+                // 检查所有可能的标识
+                const identifiers = ['isMetaMask', 'isLuckYouWallet', 'isEIP6963', 'isCoinbaseWallet', 'isBraveWallet'];
+                identifiers.forEach(id => {
+                    if (window.ethereum[id]) {
+                        log(`  - ${id}: ${window.ethereum[id]}`);
+                    }
+                });
+            }
+
+            // 检测 window.luckyouWallet
+            const hasLuckyouWallet = !!window.luckyouWallet;
+            document.getElementById('windowLuckyou').textContent = hasLuckyouWallet ? '✅ 存在' : '❌ 不存在';
+            log(`window.luckyouWallet: ${hasLuckyouWallet}`);
+
+            // 确定 LuckYou 标识
+            const isLuckYou = (window.ethereum && window.ethereum.isLuckYouWallet) || hasLuckyouWallet;
+            document.getElementById('isLuckyouWallet').textContent = isLuckYou ? '✅ 是' : '❌ 否';
+
+            // 确定使用哪个provider
+            if (hasLuckyouWallet) {
+                luckyouProvider = window.luckyouWallet;
+                document.getElementById('providerType').textContent = 'window.luckyouWallet';
+                log('✅ 将使用 window.luckyouWallet', 'success');
+            } else if (window.ethereum && window.ethereum.isLuckYouWallet) {
+                luckyouProvider = window.ethereum;
+                document.getElementById('providerType').textContent = 'window.ethereum (LuckYou标识)';
+                log('✅ 将使用 window.ethereum (带LuckYou标识)', 'success');
+            } else {
+                document.getElementById('providerType').textContent = '❌ 未找到';
+                log('❌ 未找到LuckYou Provider', 'error');
+                showSuggestion('未检测到LuckYou钱包。请确保：\n1. LuckYou钱包扩展已安装\n2. 扩展已启用\n3. 页面已刷新');
+                return;
+            }
+
+            // 检查provider的方法
+            const methods = ['request', 'on', 'removeListener', 'isConnected'];
+            methods.forEach(method => {
+                if (luckyouProvider[method]) {
+                    log(`  ✅ ${method} 方法存在`);
+                } else {
+                    log(`  ❌ ${method} 方法缺失`, 'warning');
+                }
+            });
+
+            log('=== Provider检测完成 ===', 'success');
+        }
+
+        // 测试基本连接
+        async function testBasicConnection() {
+            if (!luckyouProvider) {
+                log('❌ 请先检测Provider', 'error');
+                return;
+            }
+
+            log('=== 测试基本连接 ===');
+
+            try {
+                // 测试 isConnected 方法
+                if (typeof luckyouProvider.isConnected === 'function') {
+                    const connected = luckyouProvider.isConnected();
+                    log(`isConnected(): ${connected}`);
+                } else {
+                    log('⚠️ isConnected 方法不存在', 'warning');
+                }
+
+                // 测试 request 方法是否存在
+                if (typeof luckyouProvider.request === 'function') {
+                    log('✅ request 方法存在');
+                } else {
+                    log('❌ request 方法不存在', 'error');
+                    return;
+                }
+
+                log('基本连接测试通过', 'success');
+            } catch (error) {
+                log(`基本连接测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 请求账户访问
+        async function requestAccounts() {
+            if (!luckyouProvider) {
+                log('❌ 请先检测Provider', 'error');
+                return;
+            }
+
+            log('=== 请求账户访问 ===');
+
+            try {
+                log('发送 eth_requestAccounts 请求...');
+                
+                // 设置超时
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('请求超时 (30秒)')), 30000)
+                );
+
+                const requestPromise = luckyouProvider.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+
+                log('等待用户响应...');
+                
+                const accounts = await Promise.race([requestPromise, timeoutPromise]);
+                
+                if (accounts && accounts.length > 0) {
+                    log(`✅ 获取到账户: ${accounts[0]}`, 'success');
+                    log(`账户数量: ${accounts.length}`);
+                    accounts.forEach((account, index) => {
+                        log(`  账户${index + 1}: ${account}`);
+                    });
+                } else {
+                    log('❌ 未获取到账户', 'error');
+                }
+
+            } catch (error) {
+                log(`❌ 请求账户失败: ${error.message}`, 'error');
+                
+                // 详细错误分析
+                if (error.code) {
+                    log(`错误代码: ${error.code}`, 'error');
+                }
+                
+                if (error.message.includes('User rejected')) {
+                    showSuggestion('用户拒绝了连接请求。请在LuckYou钱包中点击"连接"按钮。');
+                } else if (error.message.includes('timeout')) {
+                    showSuggestion('请求超时。可能的原因：\n1. LuckYou钱包扩展未响应\n2. 扩展内部错误\n3. 钱包未解锁');
+                } else if (error.message.includes('No wallet found')) {
+                    showSuggestion('LuckYou钱包内部错误：未找到钱包。请：\n1. 确保已创建或导入钱包\n2. 检查钱包是否已解锁\n3. 重启扩展');
+                }
+
+                console.error('详细错误信息:', error);
+            }
+        }
+
+        // 获取已连接的账户
+        async function getAccounts() {
+            if (!luckyouProvider) {
+                log('❌ 请先检测Provider', 'error');
+                return;
+            }
+
+            log('=== 获取已连接账户 ===');
+
+            try {
+                const accounts = await luckyouProvider.request({ 
+                    method: 'eth_accounts' 
+                });
+
+                if (accounts && accounts.length > 0) {
+                    log(`✅ 已连接账户数量: ${accounts.length}`, 'success');
+                    accounts.forEach((account, index) => {
+                        log(`  账户${index + 1}: ${account}`);
+                    });
+                } else {
+                    log('ℹ️ 当前无已连接账户');
+                }
+
+            } catch (error) {
+                log(`❌ 获取账户失败: ${error.message}`, 'error');
+                console.error('详细错误信息:', error);
+            }
+        }
+
+        // 获取网络ID
+        async function getChainId() {
+            if (!luckyouProvider) {
+                log('❌ 请先检测Provider', 'error');
+                return;
+            }
+
+            log('=== 获取网络信息 ===');
+
+            try {
+                const chainId = await luckyouProvider.request({ 
+                    method: 'eth_chainId' 
+                });
+
+                log(`✅ Chain ID: ${chainId}`, 'success');
+                
+                // 转换为十进制
+                const decimalChainId = parseInt(chainId, 16);
+                log(`十进制 Chain ID: ${decimalChainId}`);
+
+                // 网络名称映射
+                const networks = {
+                    1: 'Ethereum Mainnet',
+                    11155111: 'Sepolia Testnet',
+                    31337: 'Hardhat Local'
+                };
+
+                const networkName = networks[decimalChainId] || '未知网络';
+                log(`网络名称: ${networkName}`);
+
+                if (decimalChainId !== 11155111) {
+                    log('⚠️ 当前不在Sepolia测试网', 'warning');
+                }
+
+            } catch (error) {
+                log(`❌ 获取网络信息失败: ${error.message}`, 'error');
+                console.error('详细错误信息:', error);
+            }
+        }
+
+        // 显示建议
+        function showSuggestion(suggestion) {
+            const suggestionsDiv = document.getElementById('suggestions');
+            suggestionsDiv.innerHTML = `<div class="warning"><strong>建议解决方案:</strong><br><pre>${suggestion}</pre></div>`;
+        }
+
+        // 页面加载时自动检测
+        window.addEventListener('load', () => {
+            log('🍀 LuckYou钱包调试页面已加载');
+            log('请先点击"检测Provider"开始调试');
+            
+            // 等待一下再自动检测，确保扩展已加载
+            setTimeout(() => {
+                detectProviders();
+            }, 1000);
+        });
+
+        // 监听扩展消息（如果有的话）
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type) {
+                log(`📨 收到消息: ${event.data.type}`, 'info');
+                if (event.data.type.includes('LUCKYOU')) {
+                    log(`LuckYou消息详情: ${JSON.stringify(event.data)}`, 'info');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

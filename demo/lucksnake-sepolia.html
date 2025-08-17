@@ -429,7 +429,7 @@
             </div>
             
             <div id="walletActions" style="display: none;">
-                <button id="connectWallet" class="btn wallet-btn">连接选中的钱包</button>
+                <button id="connectWallet" class="btn wallet-btn" disabled>请先选择钱包</button>
                 <button id="disconnectWallet" class="btn wallet-btn" style="display: none;">断开连接</button>
             </div>
 
@@ -596,6 +596,7 @@
 
             if (hasAvailableWallet) {
                 document.getElementById('walletActions').style.display = 'block';
+                showMessage('检测到钱包扩展，请选择您要使用的钱包。', 'info');
             } else {
                 showMessage('未检测到支持的钱包。请安装 MetaMask 或 LuckYou Wallet。', 'error');
             }
@@ -612,23 +613,27 @@
                 selectedOption.classList.add('selected');
                 selectedWallet = walletKey;
                 
-                document.getElementById('connectWallet').disabled = false;
+                const connectBtn = document.getElementById('connectWallet');
+                connectBtn.disabled = false;
+                connectBtn.textContent = `连接 ${walletConfigs[walletKey].name}`;
                 
-                showMessage(`已选择 ${walletConfigs[walletKey].name}`, 'info');
+                showMessage(`已选择 ${walletConfigs[walletKey].name}，请点击连接按钮`, 'info');
             }
         }
 
-        // 检查现有连接
+        // 检查现有连接 (已禁用自动连接)
         async function checkExistingConnection() {
+            // 不再自动连接钱包，让用户手动选择
+            console.log('自动连接已禁用，请手动选择钱包');
+            
+            // 可以检查钱包状态，但不自动连接
             for (const [key, config] of Object.entries(walletConfigs)) {
                 const walletProvider = config.getProvider();
                 if (walletProvider) {
                     try {
                         const accounts = await walletProvider.request({ method: 'eth_accounts' });
                         if (accounts && accounts.length > 0) {
-                            selectedWallet = key;
-                            await connectWallet();
-                            return;
+                            console.log(`${config.name} 有已连接的账户:`, accounts[0]);
                         }
                     } catch (error) {
                         console.log(`${config.name} check failed:`, error);
@@ -757,7 +762,12 @@
 
             // 重置UI
             document.getElementById('walletInfo').classList.remove('show');
-            document.getElementById('connectWallet').style.display = 'inline-block';
+            
+            const connectBtn = document.getElementById('connectWallet');
+            connectBtn.style.display = 'inline-block';
+            connectBtn.disabled = true;
+            connectBtn.textContent = '请先选择钱包';
+            
             document.getElementById('disconnectWallet').style.display = 'none';
             document.getElementById('generateNumber').disabled = true;
 
