@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 LuckSnake - 幸运数字生成器 (多钱包支持)</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #333;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .wallet-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .wallet-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .wallet-option {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .wallet-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .wallet-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .wallet-option.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .wallet-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .wallet-info {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .wallet-info.show {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-panel h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.wallet-btn {
+            margin: 5px;
+            padding: 10px 20px;
+            width: auto;
+            display: inline-block;
+        }
+
+        .numbers-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .number-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .query-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .query-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 50px;
+            color: #333;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .transaction-hash {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .wallet-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .wallet-status.available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .wallet-status.unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .wallet-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐍 LuckSnake</h1>
+            <p>支付 0.0001 ETH 获取你的幸运数字 (000-999) - 支持多种钱包</p>
+        </div>
+
+        <!-- 钱包连接区域 -->
+        <div class="wallet-section">
+            <h3>选择钱包</h3>
+            <div class="wallet-options" id="walletOptions">
+                <!-- 钱包选项将在这里动态生成 -->
+            </div>
+            
+            <div id="walletActions" style="display: none;">
+                <button id="connectWallet" class="btn wallet-btn">连接选中的钱包</button>
+                <button id="disconnectWallet" class="btn wallet-btn" style="display: none;">断开连接</button>
+            </div>
+
+            <div id="walletInfo" class="wallet-info">
+                <p><strong>已连接钱包:</strong> <span id="walletType"></span> <span id="walletAddress"></span></p>
+                <p><strong>余额:</strong> <span id="walletBalance"></span> ETH</p>
+                <p><strong>网络:</strong> <span id="networkName"></span></p>
+            </div>
+        </div>
+
+        <!-- 系统状态 -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="totalGenerated">-</h3>
+                <p>已生成数字</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="remainingNumbers">-</h3>
+                <p>剩余数字</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="contractBalance">-</h3>
+                <p>合约余额 (ETH)</p>
+            </div>
+            <div class="stat-card">
+                <h3>0.0001</h3>
+                <p>生成价格 (ETH)</p>
+            </div>
+        </div>
+
+        <!-- 功能控制区域 -->
+        <div class="controls">
+            <!-- 生成数字 -->
+            <div class="control-panel">
+                <h3>🎲 生成幸运数字</h3>
+                <button id="generateNumber" class="btn" disabled>生成数字 (0.0001 ETH)</button>
+            </div>
+
+            <!-- 查询功能 -->
+            <div class="control-panel">
+                <h3>🔍 查询功能</h3>
+                <div class="form-group">
+                    <label for="queryAddress">查询地址拥有的数字:</label>
+                    <input type="text" id="queryAddress" placeholder="输入钱包地址">
+                    <button id="queryUserNumbers" class="btn">查询用户数字</button>
+                </div>
+                <div class="form-group">
+                    <label for="queryNumber">查询数字的所有者:</label>
+                    <input type="number" id="queryNumber" placeholder="输入数字 (0-999)" min="0" max="999">
+                    <button id="queryNumberOwner" class="btn">查询数字所有者</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息显示区域 -->
+        <div id="messageArea"></div>
+
+        <!-- 我的数字 -->
+        <div class="numbers-section">
+            <h3>🎯 我的幸运数字</h3>
+            <p>数量: <span id="myNumberCount">0</span></p>
+            <div id="myNumbers" class="numbers-grid">
+                <!-- 用户的数字将在这里显示 -->
+            </div>
+        </div>
+
+        <!-- 查询结果 -->
+        <div class="query-section">
+            <h3>📊 查询结果</h3>
+            <div id="queryResult" class="query-result">
+                点击上方按钮开始查询...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 合约配置
+        const CONTRACT_ADDRESS = '0x68B1D87F95878fE05B998F19b66F4baba5De1aed';
+        const CONTRACT_ABI = [
+            "function generateNumber() external payable",
+            "function getUserNumbers(address user) external view returns (uint256[])",
+            "function getNumberOwner(uint256 number) external view returns (address)",
+            "function isNumberTaken(uint256 number) external view returns (bool)",
+            "function getUserNumberCount(address user) external view returns (uint256)",
+            "function getSystemInfo() external view returns (uint256 price, uint256 totalGenerated, uint256 remaining, uint256 contractBalance)",
+            "function GENERATION_PRICE() external view returns (uint256)",
+            "function owner() external view returns (address)",
+            "event NumberGenerated(address indexed user, uint256 indexed number, uint256 price)"
+        ];
+
+        let provider, signer, contract, userAccount, selectedWallet, currentWalletType;
+
+        // 钱包配置
+        const walletConfigs = {
+            metamask: {
+                name: 'MetaMask',
+                icon: '🦊',
+                description: 'MetaMask 浏览器钱包',
+                checkFunction: () => window.ethereum && window.ethereum.isMetaMask,
+                getProvider: () => window.ethereum
+            },
+            luckyou: {
+                name: 'LuckYou Wallet',
+                icon: '🍀',
+                description: 'LuckYou 自定义钱包',
+                checkFunction: () => {
+                    return window.luckyouWallet || 
+                           (window.ethereum && window.ethereum.isLuckYouWallet);
+                },
+                getProvider: () => {
+                    return window.luckyouWallet || 
+                           (window.ethereum && window.ethereum.isLuckYouWallet ? window.ethereum : null);
+                }
+            }
+        };
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', async () => {
+            await initializeApp();
+        });
+
+        // 初始化应用
+        async function initializeApp() {
+            console.log('Initializing multi-wallet app...');
+            
+            // 等待一段时间确保所有钱包扩展都已加载
+            setTimeout(async () => {
+                await detectAndDisplayWallets();
+                await checkExistingConnection();
+            }, 500);
+        }
+
+        // 检测并显示可用钱包
+        async function detectAndDisplayWallets() {
+            const walletOptionsContainer = document.getElementById('walletOptions');
+            walletOptionsContainer.innerHTML = '';
+
+            let hasAvailableWallet = false;
+
+            for (const [key, config] of Object.entries(walletConfigs)) {
+                const isAvailable = config.checkFunction();
+                console.log(`${config.name} available:`, isAvailable);
+
+                const walletOption = document.createElement('div');
+                walletOption.className = `wallet-option ${isAvailable ? '' : 'unavailable'}`;
+                walletOption.setAttribute('data-wallet', key);
+
+                walletOption.innerHTML = `
+                    <div class="wallet-icon">${config.icon}</div>
+                    <h4>${config.name}</h4>
+                    <p>${config.description}</p>
+                    <span class="wallet-status ${isAvailable ? 'available' : 'unavailable'}">
+                        ${isAvailable ? '可用' : '未安装'}
+                    </span>
+                `;
+
+                if (isAvailable) {
+                    hasAvailableWallet = true;
+                    walletOption.addEventListener('click', () => selectWallet(key));
+                }
+
+                walletOptionsContainer.appendChild(walletOption);
+            }
+
+            if (hasAvailableWallet) {
+                document.getElementById('walletActions').style.display = 'block';
+            } else {
+                showMessage('未检测到支持的钱包。请安装 MetaMask 或 LuckYou Wallet。', 'error');
+            }
+        }
+
+        // 选择钱包
+        function selectWallet(walletKey) {
+            // 移除之前的选中状态
+            document.querySelectorAll('.wallet-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // 设置新的选中状态
+            const selectedOption = document.querySelector(`[data-wallet="${walletKey}"]`);
+            if (selectedOption && !selectedOption.classList.contains('unavailable')) {
+                selectedOption.classList.add('selected');
+                selectedWallet = walletKey;
+                
+                // 启用连接按钮
+                document.getElementById('connectWallet').disabled = false;
+                
+                showMessage(`已选择 ${walletConfigs[walletKey].name}`, 'info');
+            }
+        }
+
+        // 检查现有连接
+        async function checkExistingConnection() {
+            // 检查 MetaMask
+            if (window.ethereum && window.ethereum.isMetaMask) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        selectedWallet = 'metamask';
+                        await connectWallet();
+                        return;
+                    }
+                } catch (error) {
+                    console.log('MetaMask check failed:', error);
+                }
+            }
+
+            // 检查 LuckYou Wallet
+            const luckyouProvider = walletConfigs.luckyou.getProvider();
+            if (luckyouProvider) {
+                try {
+                    const accounts = await luckyouProvider.request({ method: 'eth_accounts' });
+                    if (accounts && accounts.length > 0) {
+                        selectedWallet = 'luckyou';
+                        await connectWallet();
+                        return;
+                    }
+                } catch (error) {
+                    console.log('LuckYou Wallet check failed:', error);
+                }
+            }
+        }
+
+        // 连接钱包
+        async function connectWallet() {
+            try {
+                if (!selectedWallet) {
+                    showMessage('请先选择一个钱包', 'error');
+                    return;
+                }
+
+                const walletConfig = walletConfigs[selectedWallet];
+                const walletProvider = walletConfig.getProvider();
+
+                if (!walletProvider) {
+                    throw new Error(`${walletConfig.name} 不可用`);
+                }
+
+                console.log(`Connecting to ${walletConfig.name}...`);
+
+                // 请求账户连接
+                await walletProvider.request({ method: 'eth_requestAccounts' });
+
+                // 创建 ethers provider
+                provider = new ethers.BrowserProvider(walletProvider);
+                signer = await provider.getSigner();
+                userAccount = await signer.getAddress();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                currentWalletType = selectedWallet;
+
+                // 更新UI
+                document.getElementById('walletType').textContent = walletConfig.name;
+                document.getElementById('walletAddress').textContent = userAccount.substring(0, 6) + '...' + userAccount.substring(38);
+                document.getElementById('walletInfo').classList.add('show');
+                document.getElementById('connectWallet').style.display = 'none';
+                document.getElementById('disconnectWallet').style.display = 'inline-block';
+
+                // 启用功能按钮
+                document.getElementById('generateNumber').disabled = false;
+
+                // 设置事件监听器
+                setupWalletEventListeners(walletProvider);
+
+                // 更新信息
+                await updateWalletInfo();
+                await updateContractInfo();
+                await updateUserNumbers();
+
+                showMessage(`${walletConfig.name} 连接成功！`, 'success');
+
+            } catch (error) {
+                console.error('连接钱包失败:', error);
+                showMessage('连接钱包失败: ' + error.message, 'error');
+            }
+        }
+
+        // 断开钱包连接
+        function disconnectWallet() {
+            provider = null;
+            signer = null;
+            contract = null;
+            userAccount = null;
+            selectedWallet = null;
+            currentWalletType = null;
+
+            // 重置UI
+            document.getElementById('walletInfo').classList.remove('show');
+            document.getElementById('connectWallet').style.display = 'inline-block';
+            document.getElementById('disconnectWallet').style.display = 'none';
+            document.getElementById('generateNumber').disabled = true;
+
+            // 清除选中状态
+            document.querySelectorAll('.wallet-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // 重置数据显示
+            document.getElementById('myNumberCount').textContent = '0';
+            document.getElementById('myNumbers').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">请先连接钱包</p>';
+
+            showMessage('钱包已断开连接', 'info');
+        }
+
+        // 设置钱包事件监听器
+        function setupWalletEventListeners(walletProvider) {
+            if (walletProvider.on) {
+                // 账户变化监听
+                walletProvider.on('accountsChanged', async (accounts) => {
+                    if (accounts.length === 0) {
+                        disconnectWallet();
+                    } else {
+                        userAccount = accounts[0];
+                        await updateWalletInfo();
+                        await updateUserNumbers();
+                        showMessage('账户已切换', 'info');
+                    }
+                });
+
+                // 网络变化监听
+                walletProvider.on('chainChanged', async (chainId) => {
+                    await updateWalletInfo();
+                    await updateContractInfo();
+                    showMessage('网络已切换', 'info');
+                });
+
+                // 连接状态监听
+                walletProvider.on('connect', (connectInfo) => {
+                    console.log('Wallet connected:', connectInfo);
+                });
+
+                walletProvider.on('disconnect', (error) => {
+                    console.log('Wallet disconnected:', error);
+                    disconnectWallet();
+                });
+            }
+        }
+
+        // 更新钱包信息
+        async function updateWalletInfo() {
+            try {
+                const balance = await provider.getBalance(userAccount);
+                document.getElementById('walletBalance').textContent = ethers.formatEther(balance);
+
+                const network = await provider.getNetwork();
+                document.getElementById('networkName').textContent = network.name || 'Unknown';
+            } catch (error) {
+                console.error('更新钱包信息失败:', error);
+            }
+        }
+
+        // 更新合约信息
+        async function updateContractInfo() {
+            try {
+                const systemInfo = await contract.getSystemInfo();
+                document.getElementById('totalGenerated').textContent = systemInfo.totalGenerated.toString();
+                document.getElementById('remainingNumbers').textContent = systemInfo.remaining.toString();
+                document.getElementById('contractBalance').textContent = ethers.formatEther(systemInfo.contractBalance);
+            } catch (error) {
+                console.error('更新合约信息失败:', error);
+                // 显示默认值
+                document.getElementById('totalGenerated').textContent = '-';
+                document.getElementById('remainingNumbers').textContent = '-';
+                document.getElementById('contractBalance').textContent = '-';
+            }
+        }
+
+        // 更新用户数字
+        async function updateUserNumbers() {
+            try {
+                const numbers = await contract.getUserNumbers(userAccount);
+                const count = numbers.length;
+                
+                document.getElementById('myNumberCount').textContent = count;
+                
+                const numbersGrid = document.getElementById('myNumbers');
+                numbersGrid.innerHTML = '';
+                
+                if (count === 0) {
+                    numbersGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">暂无数字</p>';
+                } else {
+                    numbers.forEach(number => {
+                        const badge = document.createElement('div');
+                        badge.className = 'number-badge';
+                        badge.textContent = number.toString().padStart(3, '0');
+                        numbersGrid.appendChild(badge);
+                    });
+                }
+            } catch (error) {
+                console.error('更新用户数字失败:', error);
+            }
+        }
+
+        // 生成数字
+        async function generateNumber() {
+            try {
+                const button = document.getElementById('generateNumber');
+                button.innerHTML = '<span class="loading"></span>生成中...';
+                button.disabled = true;
+
+                const generationPrice = await contract.GENERATION_PRICE();
+                const tx = await contract.generateNumber({ value: generationPrice });
+                
+                showMessage('交易已提交，等待确认...', 'info');
+                showMessage('<div class="transaction-hash">交易哈希: ' + tx.hash + '</div>', 'info');
+
+                const receipt = await tx.wait();
+                
+                // 查找事件
+                const event = receipt.logs.find(log => {
+                    try {
+                        const parsed = contract.interface.parseLog(log);
+                        return parsed.name === 'NumberGenerated';
+                    } catch (e) {
+                        return false;
+                    }
+                });
+
+                if (event) {
+                    const parsedEvent = contract.interface.parseLog(event);
+                    const generatedNumber = parsedEvent.args.number.toString();
+                    showMessage(`🎉 恭喜！你获得了数字: ${generatedNumber.padStart(3, '0')}`, 'success');
+                } else {
+                    showMessage('数字生成成功！', 'success');
+                }
+
+                // 更新信息
+                await updateContractInfo();
+                await updateUserNumbers();
+                await updateWalletInfo();
+
+            } catch (error) {
+                console.error('生成数字失败:', error);
+                showMessage('生成数字失败: ' + error.message, 'error');
+            } finally {
+                const button = document.getElementById('generateNumber');
+                button.innerHTML = '生成数字 (0.0001 ETH)';
+                button.disabled = false;
+            }
+        }
+
+        // 查询用户数字
+        async function queryUserNumbers() {
+            try {
+                const address = document.getElementById('queryAddress').value.trim();
+                if (!address) {
+                    showMessage('请输入要查询的地址', 'error');
+                    return;
+                }
+
+                if (!ethers.isAddress(address)) {
+                    showMessage('请输入有效的以太坊地址', 'error');
+                    return;
+                }
+
+                const numbers = await contract.getUserNumbers(address);
+                const count = numbers.length;
+
+                let result = `<p><strong>地址:</strong> ${address}</p>`;
+                result += `<p><strong>拥有数字数量:</strong> ${count}</p>`;
+                
+                if (count > 0) {
+                    result += `<p><strong>拥有的数字:</strong></p>`;
+                    result += `<div class="numbers-grid">`;
+                    numbers.forEach(number => {
+                        result += `<div class="number-badge">${number.toString().padStart(3, '0')}</div>`;
+                    });
+                    result += `</div>`;
+                } else {
+                    result += `<p>该地址暂无数字</p>`;
+                }
+
+                document.getElementById('queryResult').innerHTML = result;
+            } catch (error) {
+                console.error('查询用户数字失败:', error);
+                document.getElementById('queryResult').innerHTML = `<p style="color: red;">查询失败: ${error.message}</p>`;
+            }
+        }
+
+        // 查询数字所有者
+        async function queryNumberOwner() {
+            try {
+                const number = parseInt(document.getElementById('queryNumber').value);
+                if (isNaN(number) || number < 0 || number > 999) {
+                    showMessage('请输入有效的数字 (0-999)', 'error');
+                    return;
+                }
+
+                const owner = await contract.getNumberOwner(number);
+                const isTaken = await contract.isNumberTaken(number);
+
+                let result = `<p><strong>查询数字:</strong> ${number.toString().padStart(3, '0')}</p>`;
+                result += `<p><strong>是否已被占用:</strong> ${isTaken ? '是' : '否'}</p>`;
+                
+                if (isTaken && owner !== '0x0000000000000000000000000000000000000000') {
+                    result += `<p><strong>所有者:</strong> ${owner}</p>`;
+                } else {
+                    result += `<p><strong>所有者:</strong> 暂无</p>`;
+                }
+
+                document.getElementById('queryResult').innerHTML = result;
+            } catch (error) {
+                console.error('查询数字所有者失败:', error);
+                document.getElementById('queryResult').innerHTML = `<p style="color: red;">查询失败: ${error.message}</p>`;
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const messageArea = document.getElementById('messageArea');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type}`;
+            alertDiv.innerHTML = message;
+            
+            messageArea.appendChild(alertDiv);
+            
+            // 5秒后自动移除消息
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        // 事件监听器
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('disconnectWallet').addEventListener('click', disconnectWallet);
+        document.getElementById('generateNumber').addEventListener('click', generateNumber);
+        document.getElementById('queryUserNumbers').addEventListener('click', queryUserNumbers);
+        document.getElementById('queryNumberOwner').addEventListener('click', queryNumberOwner);
+
+        // EIP-6963 标准钱包发现
+        function announceProvider() {
+            const info = {
+                uuid: 'lucky-snake-dapp',
+                name: 'LuckSnake DApp',
+                icon: 'data:image/svg+xml;base64,...', // 可以添加图标
+                rdns: 'com.lucksnake.dapp'
+            };
+
+            window.dispatchEvent(
+                new CustomEvent('eip6963:requestProvider', {
+                    detail: {
+                        info,
+                        reply: (providerDetail) => {
+                            console.log('EIP-6963 provider announced:', providerDetail);
+                        }
+                    }
+                })
+            );
+        }
+
+        // 触发 EIP-6963 钱包发现
+        setTimeout(announceProvider, 100);
+    </script>
+</body>
+</html>

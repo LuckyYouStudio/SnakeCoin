@@ -1,0 +1,14 @@
+{
+  "contractName": "NumberCoin",
+  "contractAddress": "0xFe5837dbd8Faf8B5e172cd3A41Ab8Bc0F3f44CB1",
+  "deployerAddress": "0x447B376B976486F5449Cdf09b990C49b5DdBD6F0",
+  "network": "sepolia",
+  "chainId": 11155111,
+  "blockNumber": 9002818,
+  "transactionHash": "0x3291fe754cefa7fcda94daa74d835986fe508a41119e7dce40f280f7e25f283f",
+  "deploymentTime": "2025-08-17T08:49:15.822Z",
+  "gasUsed": "2545966",
+  "gasCost": "0.000374392694349902",
+  "maxSupply": "10000000",
+  "lotteryPrice": "0.0001"
+}

@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 数字币NFT抽奖 - Sepolia版本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .network-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .wallet-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #dee2e6;
+        }
+
+        .wallet-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .wallet-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .wallet-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            font-weight: bold;
+        }
+
+        .wallet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .wallet-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .metamask-btn {
+            background: linear-gradient(45deg, #F6851B, #FFA726);
+        }
+
+        .wallet-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .contract-info {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .contract-info h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .contract-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .contract-details p {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+
+        .lottery-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .lottery-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .lottery-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .lottery-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .lottery-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .refresh-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tabs-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-right: 10px;
+        }
+
+        .tab-btn:hover {
+            color: #007bff;
+            background: #f8f9fa;
+        }
+
+        .tab-btn.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .nft-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .nft-card h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .nft-image {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nft-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .nft-info p {
+            margin-bottom: 8px;
+        }
+
+        .number-display {
+            font-family: 'Courier New', monospace;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+
+        .rarity-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .rarity-common {
+            background: #6c757d;
+            color: white;
+        }
+
+        .rarity-rare {
+            background: #28a745;
+            color: white;
+        }
+
+        .rarity-epic {
+            background: #6f42c1;
+            color: white;
+        }
+
+        .rarity-legendary {
+            background: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 数字币NFT抽奖</h1>
+            <p>抽奖获得独特的7位数字NFT (0000000 - 9999999)</p>
+        </div>
+
+        <div class="network-info">
+            🌐 当前网络: Sepolia 测试网 | ⛽ 使用 SepoliaETH 进行交易
+        </div>
+
+        <div class="contract-info">
+            <h3>📋 合约信息</h3>
+            <div class="contract-details">
+                <p><strong>合约地址:</strong> 0xFe5837dbd8Faf8B5e172cd3A41Ab8Bc0F3f44CB1</p>
+                <p><strong>网络:</strong> Sepolia (Chain ID: 11155111)</p>
+                <p><strong>区块高度:</strong> 9002818</p>
+                <p><strong>Etherscan:</strong> <a href="https://sepolia.etherscan.io/address/0xFe5837dbd8Faf8B5e172cd3A41Ab8Bc0F3f44CB1" target="_blank">查看合约</a></p>
+            </div>
+        </div>
+
+        <div class="wallet-section">
+            <h2>🔗 钱包连接</h2>
+            <div class="wallet-buttons">
+                <button id="metamaskBtn" class="wallet-btn metamask-btn" onclick="connectMetaMask()">
+                    🦊 连接 MetaMask
+                </button>
+            </div>
+            <div id="walletInfo" class="wallet-info" style="display: none;">
+                <!-- 钱包信息将在这里显示 -->
+            </div>
+        </div>
+
+        <div class="lottery-section">
+            <h2>🎯 数字抽奖</h2>
+            
+            <div class="lottery-info">
+                <div class="info-card">
+                    <h3>抽奖价格</h3>
+                    <p id="lotteryPrice">0.0001 SepoliaETH</p>
+                </div>
+                <div class="info-card">
+                    <h3>剩余数量</h3>
+                    <p id="remainingSupply">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>已铸造</h3>
+                    <p id="totalMinted">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>最大供应量</h3>
+                    <p id="maxSupply">10,000,000</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="refreshInfoBtn" class="refresh-btn" onclick="refreshContractInfo()">
+                    🔄 刷新信息
+                </button>
+            </div>
+
+            <button id="lotteryBtn" class="lottery-btn" onclick="playLottery()" disabled>
+                请先连接钱包
+            </button>
+
+            <div id="statusDiv"></div>
+        </div>
+
+        <div class="tabs-section">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('latest')" id="latestTab">
+                    🎉 最新抽中的数字
+                </button>
+                <button class="tab-btn" onclick="switchTab('my')" id="myTab">
+                    🔢 我的数字收藏
+                </button>
+            </div>
+            
+            <div class="tab-content active" id="latestTabContent">
+                <div class="empty-state">
+                    <h3>🎯 最新数字NFT</h3>
+                    <p>这里会显示您最近抽中的数字NFT</p>
+                    <button class="refresh-btn" onclick="loadMyNumbers()" disabled id="refreshLatestBtn">
+                        🔄 刷新最新数字
+                    </button>
+                </div>
+                <div class="nft-grid" id="latestGrid">
+                    <!-- 最新抽中的NFT将在这里显示 -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="myTabContent">
+                <div class="empty-state">
+                    <h3>🔢 我的数字收藏</h3>
+                    <p>这里会显示您拥有的所有数字NFT</p>
+                    <button class="refresh-btn" onclick="loadMyNumbers()" disabled id="refreshMyBtn">
+                        🔄 刷新我的收藏
+                    </button>
+                </div>
+                <div class="nft-grid" id="myGrid">
+                    <!-- 用户拥有的NFT将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 合约配置 - Sepolia 网络
+        const CONTRACT_ADDRESS = "0xFe5837dbd8Faf8B5e172cd3A41Ab8Bc0F3f44CB1";
+        const SEPOLIA_CHAIN_ID = "0xaa36a7"; // 11155111 in hex
+        const CONTRACT_ABI = [
+            {
+                "inputs": [],
+                "name": "name",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "MAX_SUPPLY",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "lotteryPrice",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getPoolSize",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "totalSupply",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "remainingSupply",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "playLottery",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "generateNumberSVG",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "ownerOf",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "tokenURI",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+                "name": "balanceOf",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getLotteryInfo",
+                "outputs": [
+                    {"internalType": "uint256", "name": "price", "type": "uint256"},
+                    {"internalType": "uint256", "name": "poolSize", "type": "uint256"},
+                    {"internalType": "uint256", "name": "totalMinted", "type": "uint256"},
+                    {"internalType": "uint256", "name": "remaining", "type": "uint256"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "winner", "type": "address"},
+                    {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                    {"indexed": false, "internalType": "uint256", "name": "price", "type": "uint256"}
+                ],
+                "name": "LotteryWon",
+                "type": "event"
+            }
+        ];
+
+        let web3;
+        let contract;
+        let userAccount;
+        let currentWalletProvider;
+        let currentActiveTab = 'latest';
+
+        // 检查是否连接到正确的网络
+        async function checkNetwork() {
+            if (!currentWalletProvider) return false;
+            
+            try {
+                const chainId = await currentWalletProvider.request({ method: 'eth_chainId' });
+                console.log('当前链ID:', chainId);
+                
+                if (chainId !== SEPOLIA_CHAIN_ID) {
+                    // 尝试切换到Sepolia网络
+                    try {
+                        await currentWalletProvider.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: SEPOLIA_CHAIN_ID }],
+                        });
+                        return true;
+                    } catch (switchError) {
+                        // 如果网络不存在，添加网络
+                        if (switchError.code === 4902) {
+                            try {
+                                await currentWalletProvider.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: SEPOLIA_CHAIN_ID,
+                                        chainName: 'Sepolia Test Network',
+                                        nativeCurrency: {
+                                            name: 'SepoliaETH',
+                                            symbol: 'SepoliaETH',
+                                            decimals: 18
+                                        },
+                                        rpcUrls: ['https://sepolia.infura.io/v3/'],
+                                        blockExplorerUrls: ['https://sepolia.etherscan.io/']
+                                    }],
+                                });
+                                return true;
+                            } catch (addError) {
+                                console.error('添加网络失败:', addError);
+                                return false;
+                            }
+                        }
+                        console.error('切换网络失败:', switchError);
+                        return false;
+                    }
+                }
+                return true;
+            } catch (error) {
+                console.error('检查网络失败:', error);
+                return false;
+            }
+        }
+
+        // 连接 MetaMask 钱包
+        async function connectMetaMask() {
+            const metamaskBtn = document.getElementById('metamaskBtn');
+            
+            try {
+                metamaskBtn.disabled = true;
+                metamaskBtn.innerHTML = '<span class="spinner"></span> 连接中...';
+                
+                console.log('🦊 开始连接 MetaMask 钱包...');
+                
+                if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+                    currentWalletProvider = window.ethereum;
+                    console.log('✅ 检测到 MetaMask');
+                } else {
+                    throw new Error('未检测到 MetaMask，请安装 MetaMask 扩展！');
+                }
+
+                // 检查网络
+                const networkOk = await checkNetwork();
+                if (!networkOk) {
+                    throw new Error('请切换到 Sepolia 测试网络');
+                }
+                
+                // 请求账户连接
+                showStatus('🔗 正在请求账户连接...', 'info');
+                const accounts = await currentWalletProvider.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                userAccount = accounts[0];
+                console.log('✅ 账户连接成功:', userAccount);
+                
+                // 初始化Web3和合约
+                showStatus('⚙️ 正在初始化Web3和合约...', 'info');
+                web3 = new Web3(currentWalletProvider);
+                contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                
+                // 测试合约连接
+                try {
+                    const maxSupply = await contract.methods.MAX_SUPPLY().call();
+                    console.log('✅ 合约连接测试成功:', maxSupply);
+                } catch (contractError) {
+                    throw new Error('合约连接失败: ' + contractError.message);
+                }
+                
+                // 更新UI
+                updateWalletInfo(userAccount, 'MetaMask');
+                await refreshContractInfo();
+                enableLottery();
+                enableNFTButtons();
+                
+                metamaskBtn.innerHTML = '断开连接';
+                metamaskBtn.style.background = '#28a745';
+                metamaskBtn.onclick = disconnectWallet;
+                
+                showStatus('✅ MetaMask 钱包连接成功！', 'success');
+                
+            } catch (error) {
+                console.error('MetaMask 连接失败:', error);
+                
+                let errorMessage = error.message;
+                if (error.message.includes('User rejected')) {
+                    errorMessage = '用户拒绝连接';
+                } else if (error.message.includes('网络')) {
+                    errorMessage = '请切换到 Sepolia 测试网络';
+                }
+                
+                showStatus(`❌ MetaMask 连接失败: ${errorMessage}`, 'error');
+                
+                metamaskBtn.disabled = false;
+                metamaskBtn.innerHTML = '🦊 连接 MetaMask';
+                metamaskBtn.style.background = 'linear-gradient(45deg, #F6851B, #FFA726)';
+                metamaskBtn.onclick = connectMetaMask;
+            }
+        }
+
+        // 断开连接
+        function disconnectWallet() {
+            const metamaskBtn = document.getElementById('metamaskBtn');
+            const walletInfo = document.getElementById('walletInfo');
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            
+            // 重置状态
+            userAccount = null;
+            web3 = null;
+            contract = null;
+            currentWalletProvider = null;
+            
+            // 更新UI
+            walletInfo.style.display = 'none';
+            lotteryBtn.disabled = true;
+            lotteryBtn.innerHTML = '请先连接钱包';
+            
+            // 重置按钮状态
+            metamaskBtn.disabled = false;
+            metamaskBtn.innerHTML = '🦊 连接 MetaMask';
+            metamaskBtn.style.background = 'linear-gradient(45deg, #F6851B, #FFA726)';
+            metamaskBtn.onclick = connectMetaMask;
+            
+            // 禁用NFT按钮
+            disableNFTButtons();
+            
+            showStatus('🔌 钱包已断开连接', 'info');
+        }
+
+        // 更新钱包信息
+        function updateWalletInfo(account, walletName) {
+            const walletInfo = document.getElementById('walletInfo');
+            walletInfo.style.display = 'block';
+            walletInfo.innerHTML = `
+                <p><strong>钱包类型:</strong> ${walletName}</p>
+                <p><strong>账户地址:</strong> ${account}</p>
+                <p><strong>网络:</strong> Sepolia 测试网 (Chain ID: 11155111)</p>
+                <p><strong>获取测试币:</strong> <a href="https://sepoliafaucet.com/" target="_blank">Sepolia Faucet</a></p>
+            `;
+        }
+
+        // 启用抽奖
+        function enableLottery() {
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            lotteryBtn.disabled = false;
+            lotteryBtn.innerHTML = '🎲 开始抽奖 (0.0001 SepoliaETH)';
+        }
+
+        // 启用NFT按钮
+        function enableNFTButtons() {
+            document.getElementById('refreshLatestBtn').disabled = false;
+            document.getElementById('refreshMyBtn').disabled = false;
+        }
+
+        // 禁用NFT按钮
+        function disableNFTButtons() {
+            document.getElementById('refreshLatestBtn').disabled = true;
+            document.getElementById('refreshMyBtn').disabled = true;
+        }
+
+        // 刷新合约信息
+        async function refreshContractInfo() {
+            if (!contract) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+            
+            try {
+                const lotteryPrice = await contract.methods.lotteryPrice().call();
+                const poolSize = await contract.methods.getPoolSize().call();
+                const totalSupply = await contract.methods.totalSupply().call();
+                
+                document.getElementById('lotteryPrice').textContent = 
+                    web3.utils.fromWei(lotteryPrice, 'ether') + ' SepoliaETH';
+                document.getElementById('remainingSupply').textContent = 
+                    (parseInt(poolSize) - parseInt(totalSupply)).toString();
+                document.getElementById('totalMinted').textContent = totalSupply;
+                
+                showStatus('✅ 合约信息已更新', 'success');
+            } catch (error) {
+                console.error('刷新合约信息失败:', error);
+                showStatus('❌ 刷新合约信息失败: ' + error.message, 'error');
+            }
+        }
+
+        // 抽奖
+        async function playLottery() {
+            if (!contract || !userAccount) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            // 检查网络
+            const networkOk = await checkNetwork();
+            if (!networkOk) {
+                showStatus('❌ 请切换到 Sepolia 测试网络', 'error');
+                return;
+            }
+
+            const lotteryBtn = document.getElementById('lotteryBtn');
+            const originalText = lotteryBtn.innerHTML;
+            
+            try {
+                lotteryBtn.disabled = true;
+                lotteryBtn.innerHTML = '<span class="spinner"></span> 抽奖中...';
+                
+                console.log('🎲 开始抽奖...');
+                
+                const price = await contract.methods.lotteryPrice().call();
+                console.log('抽奖价格:', web3.utils.fromWei(price, 'ether'), 'SepoliaETH');
+                
+                // 估算Gas费用
+                let estimatedGas;
+                try {
+                    estimatedGas = await contract.methods.playLottery().estimateGas({
+                        from: userAccount,
+                        value: price
+                    });
+                    console.log('估算Gas:', estimatedGas);
+                } catch (gasError) {
+                    console.warn('Gas估算失败，使用默认值:', gasError);
+                    estimatedGas = 500000;
+                }
+                
+                const gasLimit = Math.floor(estimatedGas * 1.2);
+                
+                showStatus('🎲 正在发送抽奖交易...', 'info');
+                
+                const result = await contract.methods.playLottery().send({
+                    from: userAccount,
+                    value: price,
+                    gas: gasLimit
+                });
+
+                console.log('抽奖交易成功:', result);
+                
+                // 查找抽奖事件
+                const lotteryEvent = result.events.LotteryWon;
+                if (lotteryEvent) {
+                    const tokenId = lotteryEvent.returnValues.tokenId;
+                    console.log('抽奖成功，获得Token ID:', tokenId);
+                    
+                    showStatus(`🎉 抽奖成功！获得数字 ${formatNumber(tokenId)}`, 'success');
+                    
+                    await refreshContractInfo();
+                    
+                    if (currentActiveTab === 'latest') {
+                        await loadMyNumbers();
+                    }
+                    
+                    showStatus(`🎉 完成！您获得了数字 ${formatNumber(tokenId)} NFT`, 'success');
+                } else {
+                    throw new Error('抽奖事件未找到，但交易已成功');
+                }
+                
+            } catch (error) {
+                console.error('抽奖失败:', error);
+                
+                let errorMessage = '未知错误';
+                if (error.message.includes('User denied')) {
+                    errorMessage = '用户取消了交易';
+                } else if (error.message.includes('insufficient funds')) {
+                    errorMessage = '余额不足，请确保有足够的 SepoliaETH';
+                } else if (error.message.includes('gas')) {
+                    errorMessage = 'Gas费用不足或估算失败';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                showStatus(`❌ 抽奖失败: ${errorMessage}`, 'error');
+            } finally {
+                lotteryBtn.disabled = false;
+                lotteryBtn.innerHTML = originalText;
+            }
+        }
+
+        // 加载我的数字NFT
+        async function loadMyNumbers() {
+            if (!contract || !userAccount) {
+                showStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            try {
+                showStatus('🔍 正在加载您的数字NFT...', 'info');
+                
+                const balance = await contract.methods.balanceOf(userAccount).call();
+                console.log('用户NFT数量:', balance);
+                
+                const balanceNum = parseInt(balance);
+                
+                if (balanceNum === 0) {
+                    document.getElementById('latestGrid').innerHTML = '<div class="empty-state"><h3>📭 您还没有任何数字NFT</h3><p>快去抽奖吧！</p></div>';
+                    document.getElementById('myGrid').innerHTML = '<div class="empty-state"><h3>📭 您还没有任何数字NFT</h3><p>快去抽奖吧！</p></div>';
+                    showStatus('📭 您还没有任何数字NFT，快去抽奖吧！', 'info');
+                    return;
+                }
+                
+                // 通过事件查询获取Token ID
+                const userNFTs = await scanUserNFTs(balanceNum);
+                
+                if (userNFTs.length > 0) {
+                    const latestNFTs = userNFTs.slice(0, 5);
+                    displayNFTs(latestNFTs, document.getElementById('latestGrid'));
+                    displayNFTs(userNFTs, document.getElementById('myGrid'));
+                    
+                    showStatus(`✅ 成功加载 ${userNFTs.length} 个数字NFT！`, 'success');
+                } else {
+                    document.getElementById('latestGrid').innerHTML = '<div class="empty-state"><h3>❌ 没有找到任何NFT</h3></div>';
+                    document.getElementById('myGrid').innerHTML = '<div class="empty-state"><h3>❌ 没有找到任何NFT</h3></div>';
+                    showStatus('❌ 没有找到任何NFT，可能是网络问题', 'error');
+                }
+                
+            } catch (error) {
+                console.error('加载NFT失败:', error);
+                showStatus(`❌ 加载NFT失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 扫描用户拥有的NFT
+        async function scanUserNFTs(expectedCount) {
+            const userNFTs = [];
+            
+            try {
+                console.log('📡 查询LotteryWon事件...');
+                
+                const eventSignature = web3.utils.keccak256('LotteryWon(address,uint256,uint256)');
+                const logs = await web3.eth.getPastLogs({
+                    address: CONTRACT_ADDRESS,
+                    topics: [eventSignature],
+                    fromBlock: 0,
+                    toBlock: 'latest'
+                });
+                
+                console.log(`找到 ${logs.length} 个抽奖事件`);
+                
+                const userTokenIds = [];
+                for (const log of logs) {
+                    try {
+                        if (log.topics.length >= 3) {
+                            const winner = '0x' + log.topics[1].slice(-40);
+                            const tokenId = parseInt(log.topics[2], 16).toString();
+                            
+                            if (winner.toLowerCase() === userAccount.toLowerCase()) {
+                                userTokenIds.push(tokenId);
+                                console.log(`✅ 找到用户Token: ${tokenId}`);
+                            }
+                        }
+                    } catch (parseError) {
+                        console.warn('解析事件失败:', parseError);
+                    }
+                }
+                
+                console.log(`找到的Token ID: [${userTokenIds.join(', ')}]`);
+                
+                // 加载NFT数据
+                for (const tokenId of userTokenIds) {
+                    try {
+                        const owner = await contract.methods.ownerOf(tokenId).call();
+                        if (owner.toLowerCase() === userAccount.toLowerCase()) {
+                            const nftData = await loadNFTData(tokenId);
+                            if (nftData) {
+                                userNFTs.push(nftData);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Token ${tokenId} 处理失败:`, error.message);
+                    }
+                }
+                
+                return userNFTs;
+                
+            } catch (error) {
+                console.error('❌ 扫描用户NFT失败:', error);
+                return [];
+            }
+        }
+
+        // 加载单个NFT数据
+        async function loadNFTData(tokenId) {
+            try {
+                const tokenURI = await contract.methods.tokenURI(tokenId).call();
+                
+                if (!tokenURI.startsWith("data:application/json;base64,")) {
+                    return null;
+                }
+                
+                const base64Data = tokenURI.replace("data:application/json;base64,", "");
+                const jsonData = JSON.parse(atob(base64Data));
+                
+                const svg = await contract.methods.generateNumberSVG(tokenId).call();
+                
+                return {
+                    tokenId: tokenId,
+                    name: jsonData.name || `Number ${formatNumber(tokenId)}`,
+                    description: jsonData.description || `Digital Number NFT #${tokenId}`,
+                    attributes: jsonData.attributes || [],
+                    svg: svg
+                };
+            } catch (error) {
+                console.error(`加载NFT ${tokenId} 数据失败:`, error);
+                return null;
+            }
+        }
+
+        // 显示NFT列表
+        function displayNFTs(nfts, container) {
+            container.innerHTML = '';
+            
+            nfts.forEach(nft => {
+                const nftCard = createNFTCard(nft);
+                container.appendChild(nftCard);
+            });
+        }
+
+        // 创建NFT卡片
+        function createNFTCard(nft) {
+            const card = document.createElement('div');
+            card.className = 'nft-card';
+            
+            const rarityAttr = nft.attributes.find(attr => attr.trait_type === 'Rarity');
+            const rarity = rarityAttr ? rarityAttr.value : 'Common';
+            const rarityClass = `rarity-${rarity.toLowerCase()}`;
+            
+            const numberAttr = nft.attributes.find(attr => attr.trait_type === 'Number');
+            const number = numberAttr ? numberAttr.value : nft.tokenId.toString();
+            
+            card.innerHTML = `
+                <h3>${nft.name}<span class="rarity-badge ${rarityClass}">${rarity}</span></h3>
+                <div class="nft-image">
+                    ${nft.svg}
+                </div>
+                <div class="number-display">${number}</div>
+                <div class="nft-info">
+                    <p><strong>Token ID:</strong> ${nft.tokenId}</p>
+                    <p><strong>描述:</strong> ${nft.description}</p>
+                    ${nft.attributes.map(attr => 
+                        `<p><strong>${attr.trait_type}:</strong> ${attr.value}</p>`
+                    ).join('')}
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // 格式化数字（7位补零）
+        function formatNumber(num) {
+            return num.toString().padStart(7, '0');
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // 标签页切换
+        function switchTab(tabName) {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            if (tabName === 'latest') {
+                currentActiveTab = 'latest';
+                document.getElementById('latestTab').classList.add('active');
+                document.getElementById('latestTabContent').classList.add('active');
+            } else if (tabName === 'my') {
+                currentActiveTab = 'my';
+                document.getElementById('myTab').classList.add('active');
+                document.getElementById('myTabContent').classList.add('active');
+            }
+        }
+
+        // 页面加载时检查钱包
+        window.onload = function() {
+            console.log('页面加载完成，检查钱包状态...');
+            
+            if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+                console.log('✅ MetaMask 钱包可用');
+            } else {
+                console.log('❌ MetaMask 钱包不可用');
+                document.getElementById('metamaskBtn').disabled = true;
+                document.getElementById('metamaskBtn').innerHTML = '❌ 请安装 MetaMask';
+                document.getElementById('metamaskBtn').style.background = '#6c757d';
+            }
+        };
+
+        // 监听网络变化
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('chainChanged', (chainId) => {
+                console.log('网络已切换:', chainId);
+                if (chainId !== SEPOLIA_CHAIN_ID) {
+                    showStatus('⚠️ 请切换到 Sepolia 测试网络', 'error');
+                } else {
+                    showStatus('✅ 已切换到 Sepolia 网络', 'success');
+                }
+            });
+
+            window.ethereum.on('accountsChanged', (accounts) => {
+                console.log('账户已切换:', accounts);
+                if (accounts.length === 0) {
+                    disconnectWallet();
+                } else if (userAccount && accounts[0] !== userAccount) {
+                    location.reload(); // 重新加载页面
+                }
+            });
+        }
+    </script>
+
+    <!-- Web3.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</body>
+</html>
